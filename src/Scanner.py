@@ -7,7 +7,6 @@ class Scanner:
         list_of_files = []
         path_folder = Path(path_to_folder)
         parts = path_folder.parts
-        print("Parts: ", parts)
         for dir in path_folder.walk():
             for files in dir[2]:
                 absolute_path = dir[0] / files

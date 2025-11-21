@@ -1,5 +1,6 @@
 from Scanner import Scanner
 from Comparer import Comparer
+from Synchronizer import Synchronizer
 import json
 
 
@@ -15,6 +16,7 @@ class SyncManager:
         self.pc_folder = config["pc_folder"]
         self.flash_folder = config["flash_folder"]
         self.sync_interval_sec = config["sync_interval_sec"]
+        self.Synchronizer = Synchronizer(self.pc_folder, self.flash_folder)
 
     def check_sync(self):
         pc_set_of_files = Scanner.scan_folder(self.pc_folder, len(self.pc_folder))
@@ -26,4 +28,6 @@ class SyncManager:
 
         print("No on pc: ", no_on_pc)
         print("No on flash", no_on_flash)
+
+        self.Synchronizer.synchronize(no_on_pc, no_on_flash)
 
