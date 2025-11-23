@@ -1,6 +1,6 @@
 from FileHistory import FileHistory
 from hash_compute import hash_file_sha1
-from file_work import write_json
+from file_work import write_json, read_json, write_empty_json
 
 
 from pathlib import Path
@@ -12,8 +12,14 @@ class DirHistory:
     root: Path
     files: dict[str, FileHistory] = {}
 
-    def __init__(self, root: Path, files: dict):
+    def __init__(self, root: Path, setting_dir: Path):
         self.root = root
+        settings_dir_path = root / setting_dir / Path("history.json")
+        settings_dir_path.parent.mkdir(parents=True, exist_ok=True)
+        if not settings_dir_path.exists():
+            settings_dir_path.touch()
+            write_json(settings_dir_path, {})
+        files = read_json(settings_dir_path)
         try:
             keys = list(files.keys())
             for key in keys:
@@ -30,8 +36,9 @@ class DirHistory:
             deleted = False
             self.files[file] = FileHistory(mtime, hash, deleted)
 
-    def update_history_file(self, path_to_file: str):
+    def update_history_file(self, ):
         dict_object = {}
+        path_to_file = self.root / Path(".sync\\history.json")
         for key in self.files.keys():
             print("Key: ", type(key))
             dict_object[key.__str__()] = asdict(self.files[key])

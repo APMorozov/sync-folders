@@ -5,6 +5,8 @@ from DirHistory import DirHistory
 from file_work import read_json
 import json
 
+from pathlib import Path
+
 
 
 """Модуль реализующий логику всего ПО"""
@@ -18,18 +20,19 @@ class SyncManager:
         """
         self.pc_folder = config["pc_folder"]
         self.flash_folder = config["flash_folder"]
-        self.history = config["history"]
+        self.ignore_files = config["ignore_files"]
+        self.settings_dir = Path(".sync")
         self.sync_interval_sec = config["sync_interval_sec"]
         self.Synchronizer = Synchronizer(self.pc_folder, self.flash_folder)
-        self.DirHistory = DirHistory(self.pc_folder, read_json(self.history))
+        self.DirHistory = DirHistory(self.pc_folder, self.settings_dir)
 
     def check_sync(self):
-        pc_set_of_files = Scanner.scan_folder(self.pc_folder, len(self.pc_folder))
-        flash_set_of_files = Scanner.scan_folder(self.flash_folder, len(self.flash_folder))
+        pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
+        flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
         print(pc_set_of_files)
         print(flash_set_of_files)
         self.DirHistory.update_DirHistory_field(pc_set_of_files)
-        self.DirHistory.update_history_file(self.history)
+        self.DirHistory.update_history_file()
         no_on_pc, no_on_flash = Comparer.compare_dirs(pc_set_of_files, flash_set_of_files)
 
         print("No on pc: ", no_on_pc)
