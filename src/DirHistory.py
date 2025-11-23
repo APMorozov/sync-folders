@@ -1,18 +1,23 @@
 from FileHistory import FileHistory
-from hash_compute import hash_file_sha1
 from file_work import write_json, read_json
+from hash_compute import hash_file_sha1
 
 
-from pathlib import Path
 from dataclasses import asdict
-import json
+from pathlib import Path
 
 
 class DirHistory:
+    """Класс реализующий логику ведения файловой истории"""
     root: Path
     files: dict[str, FileHistory]
 
     def __init__(self, root: Path, setting_dir: Path):
+        """
+
+        :param root: Путь до директории которую нужно синхронизировать
+        :param setting_dir: директория с настройками
+        """
         self.root = root
         self.files = {}
         settings_dir_path = root / setting_dir / Path("history.json")
@@ -25,16 +30,24 @@ class DirHistory:
         for key in keys:
             self.files[key] = FileHistory(**files[key])
 
-    def update_DirHistory_field(self, files: set):
-        file_states = dict()
+    def update_DirHistory_field(self, files: set[Path]) -> None:
+        """
+        Добавляет новые файлы за которыми будет писаться история , либо обновляет значения файлов
+        :param files: пути к файлам
+        :return:
+        """
         for file in files:
             absolute_path = self.root / file
             mtime = absolute_path.stat().st_mtime
-            hash = hash_file_sha1(absolute_path)
+            file_hash = hash_file_sha1(absolute_path)
             deleted = False
-            self.files[file] = FileHistory(mtime, hash, deleted)
+            self.files[file] = FileHistory(mtime, file_hash, deleted)
 
-    def update_history_file(self):
+    def update_history_file(self) -> None:
+        """
+        Записывает историю файлов в .sync\\history.json
+        :return:
+        """
         dict_object = {}
         path_to_file = self.root / Path(".sync\\history.json")
         for key in self.files.keys():
@@ -42,23 +55,27 @@ class DirHistory:
             write_json(path_to_file, dict_object)
 
     def is_deleted(self, current_path: Path):
+        """
+        Проверяет не удален ли файл на носителе
+        :param current_path: путь к файлу
+        :return:
+        """
         file_history = self.files[current_path.__str__()]
         return file_history.deleted
 
-    def determine_files_to_delete(self, set_of_files: set):
+    def determine_files_to_delete(self, set_of_files: set[Path]) -> set[Path]:
+        """
+        Находит файлы которые были удалены пользователем(на основе различий между сканированиями)
+        :param set_of_files: пути к файлам
+        :return: пути к файлам обязательным к удалению
+        """
         old_files = set(self.files.keys())
         set_with_files = set(file.__str__() for file in set_of_files)
-        files_to_delete = []
-        print("Set: ", set_with_files)
-        print("OLD: ", old_files)
+        files_to_delete = set()
         for difference in (old_files - set_with_files):
             if self.files[difference].deleted:
                 continue
             else:
                 self.files[difference].deleted = True
-                files_to_delete.append(difference)
+                files_to_delete.add(Path(difference))
         return files_to_delete
-
-
-
-
