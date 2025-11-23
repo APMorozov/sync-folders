@@ -1,24 +1,24 @@
 {
-    "text.txt": {
-        "mtime": 1763476801.56661,
-        "hash": "94045af1bceb336cefb87b6f125f8bcdb92d8038",
-        "deleted": false,
-        "deleted_at": null
-    },
     "flash.txt": {
         "mtime": 1763736705.1894052,
         "hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
         "deleted": false,
         "deleted_at": null
     },
-    "super_secret.txt": {
-        "mtime": 1763478012.1865187,
-        "hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+    "text.txt": {
+        "mtime": 1763476801.56661,
+        "hash": "94045af1bceb336cefb87b6f125f8bcdb92d8038",
         "deleted": false,
         "deleted_at": null
     },
     "diir\\subdir\\secter_text.txt": {
         "mtime": 1763737064.5892806,
+        "hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "deleted": false,
+        "deleted_at": null
+    },
+    "super_secret.txt": {
+        "mtime": 1763478012.1865187,
         "hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
         "deleted": false,
         "deleted_at": null
