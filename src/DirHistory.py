@@ -1,6 +1,6 @@
 from FileHistory import FileHistory
 from hash_compute import hash_file_sha1
-from file_work import write_json, read_json, write_empty_json
+from file_work import write_json, read_json
 
 
 from pathlib import Path
