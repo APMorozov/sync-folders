@@ -14,3 +14,4 @@ class Scanner:
                 if not any(item in ignore_files for item in parts_current_path_by_root):
                     list_of_files.append(Path(*parts_current_path_by_root))
         return set(list_of_files)
+
