@@ -43,3 +43,9 @@ class DirHistory:
             print("Key: ", type(key))
             dict_object[key.__str__()] = asdict(self.files[key])
             write_json(path_to_file, dict_object)
+
+    def is_deleted(self, current_path: Path):
+        if current_path not in self.files.keys():
+            return False
+        return self.files[current_path].deleted
+

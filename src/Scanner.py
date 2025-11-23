@@ -4,7 +4,6 @@ from pathlib import Path
 class Scanner:
     @staticmethod
     def scan_folder(path_to_folder, ignore_files):
-        print("IGNORE", ignore_files)
         list_of_files = []
         path_folder = Path(path_to_folder)
         parts = path_folder.parts
