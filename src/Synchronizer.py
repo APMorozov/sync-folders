@@ -1,5 +1,8 @@
+from DirHistory import DirHistory
+
 from pathlib import Path
 import shutil
+import os
 
 
 class Synchronizer:
@@ -26,5 +29,15 @@ class Synchronizer:
             path = self.flash_folder / file
             path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(self.pc_folder / file, path,)
+
+    def sinchronize_deleted_files(self, files: set[Path], deleted_file_history: DirHistory, delete_file_history: DirHistory) -> None:
+        for file in files:
+            try:
+                os.remove(delete_file_history.root / file)
+                deleted_file_history.set_flag_deleted_at(file)
+            except FileNotFoundError:
+                continue
+            except Exception as exc:
+                print("ERROR:", exc)
 
 

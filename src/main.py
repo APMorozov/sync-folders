@@ -1,5 +1,6 @@
 from SyncManager import SyncManager
 from file_work import read_json
+import shutil
 #from GUI.App import App
 import os
 

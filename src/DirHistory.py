@@ -66,6 +66,18 @@ class DirHistory:
         file_history = self.files[current_path.__str__()]
         return file_history.deleted
 
+    def set_flag_deleted_at(self, current_path: Path):
+        keys = self.files.keys()
+        if current_path.__str__() not in keys:
+            raise Exception
+        file_history = self.files[current_path.__str__()]
+        file_history.deleted_at = True
+
+    def delete_files_from_history(self, files: set[Path]):
+        for file in files:
+            if self.files[file.__str__()].deleted and self.files[file.__str__()].deleted_at:
+                self.files.pop(file.__str__())
+
     def determine_files_to_delete(self, set_of_files: set[Path]) -> set[Path]:
         """
         Находит файлы которые были удалены пользователем(на основе различий между сканированиями)

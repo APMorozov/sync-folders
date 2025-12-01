@@ -57,6 +57,17 @@ class SyncManager:
         self.flash_DirHistory.update_history_file()
         self.pc_DirHistory.update_history_file()
 
+    def find_and_sinc_deleted_files(self, pc_set_of_files: set[Path], flash_set_of_files: set[Path]):
+        pc_files_to_delete = self.pc_DirHistory.determine_files_to_delete(pc_set_of_files)
+        print("Delete on pc: ", pc_files_to_delete)
+        self.Synchronizer.sinchronize_deleted_files(pc_files_to_delete, self.pc_DirHistory, self.flash_DirHistory)
+
+        flash_files_to_delete = self.flash_DirHistory.determine_files_to_delete(flash_set_of_files)
+        print("Delete on flash: ", flash_files_to_delete)
+        self.Synchronizer.sinchronize_deleted_files(flash_files_to_delete, self.flash_DirHistory, self.pc_DirHistory)
+
+        return pc_files_to_delete, flash_files_to_delete
+
     def go(self):
         self.start_sync()
         while True:
@@ -66,12 +77,8 @@ class SyncManager:
             print("Files on flash", flash_set_of_files)
             print("\n\n\n")
 
-            pc_files_to_delete = self.pc_DirHistory.determine_files_to_delete(pc_set_of_files)
-            flash_files_to_delete = self.flash_DirHistory.determine_files_to_delete(flash_set_of_files)
-            print("Delete on pc: ", pc_files_to_delete)
-            print("Is deleted", self.pc_DirHistory.is_deleted(Path("flash_file.txt")))
-            print("Delete on flash", flash_files_to_delete)
-            print("\n\n\n")
+            pc_files_to_delete, flash_files_to_delete = self.find_and_sinc_deleted_files(pc_set_of_files,
+                                                                                         flash_set_of_files)
 
             no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
             print("No on pc: ", no_on_pc)
@@ -85,10 +92,14 @@ class SyncManager:
             print("\n\n\n")
 
             self.Synchronizer.synchronize(pc_must_be_sync, flash_must_be_sync)
+
+            self.pc_DirHistory.delete_files_from_history(pc_files_to_delete)
+            self.flash_DirHistory.delete_files_from_history(flash_files_to_delete)
+
             self.pc_DirHistory.update_DirHistory_field(pc_must_be_sync)
             self.flash_DirHistory.update_DirHistory_field(flash_must_be_sync)
             self.flash_DirHistory.update_history_file()
             self.pc_DirHistory.update_history_file()
 
-            time.sleep(10)
+            time.sleep(15)
 
