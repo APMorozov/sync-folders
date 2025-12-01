@@ -41,7 +41,7 @@ class DirHistory:
             mtime = absolute_path.stat().st_mtime
             file_hash = hash_file_sha1(absolute_path)
             deleted = False
-            self.files[file] = FileHistory(mtime, file_hash, deleted)
+            self.files[file.__str__()] = FileHistory(mtime, file_hash, deleted)
 
     def update_history_file(self) -> None:
         """
@@ -60,6 +60,9 @@ class DirHistory:
         :param current_path: путь к файлу
         :return:
         """
+        keys = self.files.keys()
+        if current_path.__str__() not in keys:
+            return False
         file_history = self.files[current_path.__str__()]
         return file_history.deleted
 

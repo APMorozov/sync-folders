@@ -11,6 +11,6 @@ if __name__ == "__main__":
     #keys = list(config.keys())
     #print("Settings:", config[keys[0]])
     Manager = SyncManager(config)
-    Manager.check_sync()
+    Manager.go()
 
 

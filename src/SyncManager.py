@@ -3,8 +3,9 @@ from Comparer import Comparer
 from Synchronizer import Synchronizer
 from DirHistory import DirHistory
 from file_work import read_json
-import json
 
+import json
+import time
 from pathlib import Path
 
 
@@ -27,30 +28,67 @@ class SyncManager:
         self.pc_DirHistory = DirHistory(self.pc_folder, self.settings_dir)
         self.flash_DirHistory = DirHistory(self.flash_folder, self.settings_dir)
 
-    def check_sync(self):
+    def start_sync(self):
         pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
         flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
         print(pc_set_of_files)
         print(flash_set_of_files)
-        #self.pc_DirHistory.update_DirHistory_field(pc_set_of_files)
-        #self.pc_DirHistory.update_history_file()
+        self.pc_DirHistory.update_DirHistory_field(pc_set_of_files)
+        self.pc_DirHistory.update_history_file()
 
-        #self.flash_DirHistory.update_DirHistory_field(flash_set_of_files)
-        #self.flash_DirHistory.update_history_file()
+        self.flash_DirHistory.update_DirHistory_field(flash_set_of_files)
+        self.flash_DirHistory.update_history_file()
 
         no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
 
         print("No on pc: ", no_on_pc)
         print("No on flash", no_on_flash)
 
-        print("DELETED1: ", self.pc_DirHistory.is_deleted(Path("super_secret.txt")))
-        print("DELETED2: ", self.pc_DirHistory.is_deleted(Path("flash.txt")))
+        pc_must_be_sync = Comparer.resolve_sync_actions(no_on_pc, self.pc_DirHistory)
+        print("Must sync: ", pc_must_be_sync)
 
-        must_be_sync = Comparer.resolve_sync_actions(no_on_pc, self.pc_DirHistory)
-        print("Must sync: ", must_be_sync)
+        flash_must_be_sync = Comparer.resolve_sync_actions(no_on_flash, self.flash_DirHistory)
+        print("Must sync: ", flash_must_be_sync)
 
-        self.Synchronizer.synchronize(must_be_sync, no_on_flash)
+        self.Synchronizer.synchronize(pc_must_be_sync, flash_must_be_sync)
+        self.Synchronizer.synchronize(pc_must_be_sync, flash_must_be_sync)
+        self.pc_DirHistory.update_DirHistory_field(pc_must_be_sync)
+        self.flash_DirHistory.update_DirHistory_field(flash_must_be_sync)
+        self.flash_DirHistory.update_history_file()
+        self.pc_DirHistory.update_history_file()
 
-        files_to_delete = self.pc_DirHistory.determine_files_to_delete(pc_set_of_files)
-        print("Files to delete: ", files_to_delete)
+    def go(self):
+        self.start_sync()
+        while True:
+            pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
+            flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
+            print("Files on pc: ", pc_set_of_files)
+            print("Files on flash", flash_set_of_files)
+            print("\n\n\n")
+
+            pc_files_to_delete = self.pc_DirHistory.determine_files_to_delete(pc_set_of_files)
+            flash_files_to_delete = self.flash_DirHistory.determine_files_to_delete(flash_set_of_files)
+            print("Delete on pc: ", pc_files_to_delete)
+            print("Is deleted", self.pc_DirHistory.is_deleted(Path("flash_file.txt")))
+            print("Delete on flash", flash_files_to_delete)
+            print("\n\n\n")
+
+            no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
+            print("No on pc: ", no_on_pc)
+            print("No on flash", no_on_flash)
+            print("\n\n\n")
+
+            pc_must_be_sync = Comparer.resolve_sync_actions(no_on_pc, self.pc_DirHistory)
+            flash_must_be_sync = Comparer.resolve_sync_actions(no_on_flash, self.flash_DirHistory)
+            print("Must be sync pc: ", pc_must_be_sync)
+            print("Must be sync flash", flash_must_be_sync)
+            print("\n\n\n")
+
+            self.Synchronizer.synchronize(pc_must_be_sync, flash_must_be_sync)
+            self.pc_DirHistory.update_DirHistory_field(pc_must_be_sync)
+            self.flash_DirHistory.update_DirHistory_field(flash_must_be_sync)
+            self.flash_DirHistory.update_history_file()
+            self.pc_DirHistory.update_history_file()
+
+            time.sleep(10)
 

@@ -26,3 +26,5 @@ class Synchronizer:
             path = self.flash_folder / file
             path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(self.pc_folder / file, path,)
+
+

@@ -19,15 +19,15 @@ class Comparer:
         return no_on_pc, no_on_flash
 
     @staticmethod
-    def resolve_sync_actions(differences: set[Path], history: DirHistory) -> list[Path]:
+    def resolve_sync_actions(differences: set[Path], history: DirHistory) -> set[Path]:
         """
         Возвращает файлы которые нужно копировать на носитель(пк или флэшка)
         :param differences: файлы которых нет на носителе
         :param history: класс реализующий  логику ведения файловой истории на носителе
         :return: файлы которые нужно копировать
         """
-        must_be_sync = []
+        must_be_sync = set()
         for difference in differences:
             if not history.is_deleted(difference):
-                must_be_sync.append(difference)
+                must_be_sync.add(difference)
         return must_be_sync
