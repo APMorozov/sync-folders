@@ -35,6 +35,8 @@ class Synchronizer:
             try:
                 os.remove(delete_file_history.root / file)
                 deleted_file_history.set_flag_deleted_at(file)
+                delete_file_history.set_flag_deleted_at(file)
+                delete_file_history.set_flag_deleted(file)
             except FileNotFoundError:
                 continue
             except Exception as exc:

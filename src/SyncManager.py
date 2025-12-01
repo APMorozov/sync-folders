@@ -95,6 +95,8 @@ class SyncManager:
 
             self.pc_DirHistory.delete_files_from_history(pc_files_to_delete)
             self.flash_DirHistory.delete_files_from_history(flash_files_to_delete)
+            self.flash_DirHistory.delete_files_from_history(pc_files_to_delete)
+            self.pc_DirHistory.delete_files_from_history(flash_files_to_delete)
 
             self.pc_DirHistory.update_DirHistory_field(pc_must_be_sync)
             self.flash_DirHistory.update_DirHistory_field(flash_must_be_sync)

@@ -73,6 +73,13 @@ class DirHistory:
         file_history = self.files[current_path.__str__()]
         file_history.deleted_at = True
 
+    def set_flag_deleted(self, current_path: Path):
+        keys = self.files.keys()
+        if current_path.__str__() not in keys:
+            raise Exception
+        file_history = self.files[current_path.__str__()]
+        file_history.deleted = True
+
     def delete_files_from_history(self, files: set[Path]):
         for file in files:
             if self.files[file.__str__()].deleted and self.files[file.__str__()].deleted_at:
