@@ -1,8 +1,8 @@
-from Scanner import Scanner
-from Comparer import Comparer
-from Synchronizer import Synchronizer
-from DirHistory import DirHistory
-from file_work import read_json
+from src.Scanner import Scanner
+from src.Comparer import Comparer
+from src.Synchronizer import Synchronizer
+from src.DirHistory import DirHistory
+from src.file_work import read_json
 
 import json
 import time
@@ -69,39 +69,36 @@ class SyncManager:
         return pc_files_to_delete, flash_files_to_delete
 
     def go(self):
-        self.start_sync()
-        while True:
-            pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
-            flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
-            print("Files on pc: ", pc_set_of_files)
-            print("Files on flash", flash_set_of_files)
-            print("\n\n\n")
+        pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
+        flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
+        print("Files on pc: ", pc_set_of_files)
+        print("Files on flash", flash_set_of_files)
+        print("\n\n\n")
 
-            pc_files_to_delete, flash_files_to_delete = self.find_and_sinc_deleted_files(pc_set_of_files,
-                                                                                         flash_set_of_files)
+        pc_files_to_delete, flash_files_to_delete = self.find_and_sinc_deleted_files(pc_set_of_files,
+                                                                                     flash_set_of_files)
 
-            no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
-            print("No on pc: ", no_on_pc)
-            print("No on flash", no_on_flash)
-            print("\n\n\n")
+        no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
+        print("No on pc: ", no_on_pc)
+        print("No on flash", no_on_flash)
+        print("\n\n\n")
 
-            pc_must_be_sync = Comparer.resolve_sync_actions(no_on_pc, self.pc_DirHistory)
-            flash_must_be_sync = Comparer.resolve_sync_actions(no_on_flash, self.flash_DirHistory)
-            print("Must be sync pc: ", pc_must_be_sync)
-            print("Must be sync flash", flash_must_be_sync)
-            print("\n\n\n")
+        pc_must_be_sync = Comparer.resolve_sync_actions(no_on_pc, self.pc_DirHistory)
+        flash_must_be_sync = Comparer.resolve_sync_actions(no_on_flash, self.flash_DirHistory)
+        print("Must be sync pc: ", pc_must_be_sync)
+        print("Must be sync flash", flash_must_be_sync)
+        print("\n\n\n")
 
-            self.Synchronizer.synchronize(pc_must_be_sync, flash_must_be_sync)
+        self.Synchronizer.synchronize(pc_must_be_sync, flash_must_be_sync)
 
-            self.pc_DirHistory.delete_files_from_history(pc_files_to_delete)
-            self.flash_DirHistory.delete_files_from_history(flash_files_to_delete)
-            self.flash_DirHistory.delete_files_from_history(pc_files_to_delete)
-            self.pc_DirHistory.delete_files_from_history(flash_files_to_delete)
+        self.pc_DirHistory.delete_files_from_history(pc_files_to_delete)
+        self.flash_DirHistory.delete_files_from_history(flash_files_to_delete)
+        self.flash_DirHistory.delete_files_from_history(pc_files_to_delete)
+        self.pc_DirHistory.delete_files_from_history(flash_files_to_delete)
 
-            self.pc_DirHistory.update_DirHistory_field(pc_must_be_sync)
-            self.flash_DirHistory.update_DirHistory_field(flash_must_be_sync)
-            self.flash_DirHistory.update_history_file()
-            self.pc_DirHistory.update_history_file()
+        self.pc_DirHistory.update_DirHistory_field(pc_must_be_sync)
+        self.flash_DirHistory.update_DirHistory_field(flash_must_be_sync)
+        self.flash_DirHistory.update_history_file()
+        self.pc_DirHistory.update_history_file()
 
-            time.sleep(15)
 

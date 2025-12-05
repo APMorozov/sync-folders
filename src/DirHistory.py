@@ -1,6 +1,6 @@
-from FileHistory import FileHistory
-from file_work import write_json, read_json
-from hash_compute import hash_file_sha1
+from src.FileHistory import FileHistory
+from src.file_work import write_json, read_json
+from src.hash_compute import hash_file_sha1
 
 
 from dataclasses import asdict

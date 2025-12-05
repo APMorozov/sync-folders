@@ -1,6 +1,8 @@
 {
-  "pc_folder": "C:\\Users\\moroz\\OneDrive\\Desktop\\3-kurs\\Kursovaia\\sync-folders\\storage",
-  "flash_folder": "E:\\flash_storage",
-  "ignore_files": [".sync"],
-  "sync_interval_sec": 10
+    "pc_folder": "C:/Users/moroz/OneDrive/Desktop/3-kurs/Kursovaia/sync-folders/storage",
+    "flash_folder": "E:/flash_storage",
+    "ignore_files": [
+        ".sync"
+    ],
+    "sync_interval_sec": 15
 }
