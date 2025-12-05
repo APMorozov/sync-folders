@@ -1,8 +1,8 @@
-from src.Scanner import Scanner
-from src.Comparer import Comparer
-from src.Synchronizer import Synchronizer
-from src.DirHistory import DirHistory
-from src.file_work import read_json
+from src.core.Scanner import Scanner
+from src.core.Comparer import Comparer
+from src.core.Synchronizer import Synchronizer
+from src.core.history.DirHistory import DirHistory
+from src.utils.file_work import read_json
 
 import json
 import time

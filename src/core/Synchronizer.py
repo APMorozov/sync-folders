@@ -1,4 +1,4 @@
-from src.DirHistory import DirHistory
+from src.core.history.DirHistory import DirHistory
 
 from pathlib import Path
 import shutil

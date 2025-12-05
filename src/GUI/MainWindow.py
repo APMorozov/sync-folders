@@ -7,8 +7,8 @@ from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtCore import Qt, QTimer
 from pathlib import Path
 
-from src.SyncManager import SyncManager
-from src.file_work import write_json, read_json
+from src.core.SyncManager import SyncManager
+from src.utils.file_work import write_json, read_json
 
 
 class SyncApp(QWidget):
@@ -32,16 +32,24 @@ class SyncApp(QWidget):
         for folder in data.get("ignore_files", []):
             self.ignore_list.addItem(folder)
 
-    def __init__(self):
+    def __init__(self, path_to_config: str):
+        """
+
+        :param path_to_config: абсолютный путь к конфигу
+        """
         super().__init__()
         self.init_ui()
-        self.path_to_config = "C:\\Users\\moroz\\OneDrive\\Desktop\\3-kurs\\Kursovaia\\sync-folders\\src\\config.json"
+        self.path_to_config = path_to_config
         self.set_data_from_config(read_json(self.path_to_config))
         self.Manager = SyncManager(read_json(self.path_to_config))
         self.sync_timer = QTimer()
         self.sync_timer.timeout.connect(self.auto_sync)
 
     def init_ui(self):
+        """
+        Инициация интерфейса
+        :return:
+        """
         self.setWindowTitle("Cинхронизатор файлов")
         self.resize(520, 400)
 
@@ -120,11 +128,14 @@ class SyncApp(QWidget):
 
         self.setLayout(main_layout)
 
-
     def take_sync_interval(self):
+        """
+        Подтягивает выбранное пользователем время из интерфейса
+        :return: интервал синхронизации: сек
+        """
         match self.freq_combo.currentIndex():
             case 0:
-                return 360
+                return 360 #Вынести в константы
             case 1:
                 return 3000
             case 2:
@@ -134,48 +145,75 @@ class SyncApp(QWidget):
             case 4:
                 return 15
 
-    def transfor_path_ignore_folders(self):
+    def transform_path_ignore_folders(self) -> list[str]:
+        """
+        Приводит пути взятые из интерфейса к виду с которым работает ядро приложения
+        :return:
+        """
         ignore_array = [self.ignore_list.item(i).text() for i in range(self.ignore_list.count())]
         transformed_folders = [Path(path).parts[-1] for path in ignore_array ]
         return transformed_folders
 
     def update_settings_file(self):
+        """
+        Собирает и записывает в конфиг все данные введенные пользователем в интерфейс
+        :return:
+        """
         data = {"pc_folder": self.pc_folder.text(), "flash_folder": self.flash_folder.text(),
-                "ignore_files": self.transfor_path_ignore_folders(), "sync_interval_sec": self.take_sync_interval()}
+                "ignore_files": self.transform_path_ignore_folders(), "sync_interval_sec": self.take_sync_interval()}
         print("Update config:", data)
         write_json(self.path_to_config, data)
 
     def choose_pc_folder(self):
+        """
+        Выбор папки и отображение ее в интерфейсе
+        :return:
+        """
         folder = QFileDialog.getExistingDirectory(self, "Выбор исходной папки")
         if folder:
             self.pc_folder.setText(folder)
 
     def choose_flash_folder(self):
+        """
+        Выбор папки и отображение ее в интерфейсе
+        :return:
+        """
         folder = QFileDialog.getExistingDirectory(self, "Выбор целевой папки")
         if folder:
             self.flash_folder.setText(folder)
 
     def add_ignore_folder(self):
+        """
+        Выбор игнор папки и отображение ее в интерфейсе
+        :return:
+        """
         folder = QFileDialog.getExistingDirectory(self, "Выберите папку для игнорирования")
         if folder:
             self.ignore_list.addItem(folder)
 
     def remove_ignore_folder(self):
+        """
+        Удаление игнор папки и отображение этого в интерфейсе
+        :return:
+        """
         for item in self.ignore_list.selectedItems():
             self.ignore_list.takeItem(self.ignore_list.row(item))
 
     def auto_sync(self):
+        """
+        Синхронизация происходящая каждый интервал
+        :return:
+        """
         self.Manager.go()
         self.sync_timer.start(self.interval * 1000)
 
     def sync_action(self):
+        """
+        Начальная синхронизация, происходящая при нажатии кнопки
+        :return:
+        """
         self.update_settings_file()
         self.Manager.start_sync()
         self.auto_sync()
 
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = SyncApp()
-    window.show()
-    sys.exit(app.exec())
