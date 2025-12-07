@@ -5,6 +5,19 @@ class Scanner:
     """
     Класс реализующий логику сканирования директорий
     """
+
+    @staticmethod
+    def take_differences(pc_set_of_files: set, flash_set_of_files: set) -> tuple[set[Path], set[Path]]:
+        """
+        Находит различия между директориями
+        :param pc_set_of_files: файлы в директори на пк
+        :param flash_set_of_files: файлы в директори на флэшке
+        :return: файлы которых нет на пк, файлы которых нет на флэшке
+        """
+        no_on_pc = flash_set_of_files - pc_set_of_files
+        no_on_flash = pc_set_of_files - flash_set_of_files
+        return no_on_pc, no_on_flash
+
     @staticmethod
     def scan_folder(path_to_folder: Path, ignore_files: list) -> set[Path]:
         """

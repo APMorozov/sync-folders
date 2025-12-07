@@ -1,5 +1,4 @@
 from src.core.Scanner import Scanner
-from src.core.Comparer import Comparer
 from src.core.Synchronizer import Synchronizer
 from src.core.history.DirHistory import DirHistory
 from src.utils.file_work import read_json
@@ -32,7 +31,7 @@ class SyncManager:
             print("Files on pc: ", pc_set_of_files)
             print("Files on flash", flash_set_of_files)
             print("\n\n\n")
-            no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
+            no_on_pc, no_on_flash = Scanner.take_differences(pc_set_of_files, flash_set_of_files)
             print("No on pc: ", no_on_pc)
             print("No on flash", no_on_flash)
             print("\n\n\n")

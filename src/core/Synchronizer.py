@@ -28,20 +28,9 @@ class Synchronizer:
             path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(self.pc_folder / file, path,)
 
-    def delete_empty_dir(self, empty_dir: set[Path]):
+    @staticmethod
+    def delete_empty_dir(empty_dir: set[Path]):
         for dir in empty_dir:
             os.rmdir(dir)
-
-    def sinchronize_deleted_files(self, files: set[Path], deleted_file_history: DirHistory, delete_file_history: DirHistory) -> None:
-        for file in files:
-            try:
-                os.remove(delete_file_history.root / file)
-                deleted_file_history.set_flag_deleted_at(file)
-                delete_file_history.set_flag_deleted_at(file)
-                delete_file_history.set_flag_deleted(file)
-            except FileNotFoundError:
-                continue
-            except Exception as exc:
-                print("ERROR:", exc)
 
 
