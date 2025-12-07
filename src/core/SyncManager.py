@@ -25,28 +25,26 @@ class SyncManager:
         self.settings_dir = Path(".sync")
         self.Synchronizer = Synchronizer(self.pc_folder, self.flash_folder)
 
-    def start_sync(self):
-        pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
-        flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
-        print(pc_set_of_files)
-        print(flash_set_of_files)
+    def sync(self):
+        while True:
+            pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
+            flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
+            print("Files on pc: ", pc_set_of_files)
+            print("Files on flash", flash_set_of_files)
+            print("\n\n\n")
+            no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
+            print("No on pc: ", no_on_pc)
+            print("No on flash", no_on_flash)
+            print("\n\n\n")
 
-        no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
-
-        print("No on pc: ", no_on_pc)
-        print("No on flash", no_on_flash)
-
-
-    def go(self):
-        pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
-        flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
-        print("Files on pc: ", pc_set_of_files)
-        print("Files on flash", flash_set_of_files)
-        print("\n\n\n")
-        no_on_pc, no_on_flash = Comparer.take_differences(pc_set_of_files, flash_set_of_files)
-        print("No on pc: ", no_on_pc)
-        print("No on flash", no_on_flash)
-        print("\n\n\n")
+            self.Synchronizer.synchronize(no_on_pc, no_on_flash)
+            pc_empty_dir = Scanner.take_empty_dir(self.pc_folder)
+            flash_empty_dir = Scanner.take_empty_dir(self.flash_folder)
+            print("Empty pc: ", pc_empty_dir)
+            print("Empty flash: ", flash_empty_dir)
+            self.Synchronizer.delete_empty_dir(pc_empty_dir)
+            self.Synchronizer.delete_empty_dir(flash_empty_dir)
+            time.sleep(15)
 
 
 
