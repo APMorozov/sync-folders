@@ -1,6 +1,7 @@
 from PySide6.QtCore import Signal, QObject
 import time
 
+"""Класс реализующий логику мониторинга подключенных устройств и сигнализацию о новых подключениях"""
 
 class EventBus(QObject):
     usb_detected = Signal()
@@ -8,6 +9,10 @@ class EventBus(QObject):
 
 
     def usb_monitor(self):
+        """
+        Мониторинг usb девайсов
+        :return:
+        """
         known = set()
 
         while True:

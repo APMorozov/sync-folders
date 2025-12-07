@@ -17,7 +17,12 @@ from src.utils.file_work import write_json, read_json
 
 class SyncApp(QWidget):
 
-    def set_data_from_config(self, data):
+    def set_data_from_config(self, data: dict):
+        """
+        Устанавливает данные из файла настроек
+        :param data: данные файла настроек
+        :return:
+        """
         self.pc_folder.setText(data.get("pc_folder", ""))
         self.flash_folder.setText(data.get("flash_folder", ""))
         self.ignore_list.clear()
@@ -114,18 +119,34 @@ class SyncApp(QWidget):
         self.setLayout(main_layout)
 
     def hide_to_tray(self):
+        """
+        Убрать в трей
+        :return:
+        """
         self.tray.show()
         self.hide()
 
     def show_window(self):
+        """
+        Показать окно
+        :return:
+        """
         self.show()
         self.raise_()
 
     def ask_password(self):
+        """
+        Запрос пароля при обнаружении флэшки
+        :return:
+        """
         QMessageBox.information(self, "USB", "Обнаружено устройство. Введите пароль.")
         self.auto_sync()
 
     def exit_app(self):
+        """
+        Закрытие приложения из Tray
+        :return:
+        """
         self.tray.hide()
         QApplication.quit()
 
@@ -184,7 +205,7 @@ class SyncApp(QWidget):
 
     def auto_sync(self):
         """
-        Синхронизация происходящая каждый интервал
+        Синхронизация происходящая при обнаружении флэшки
         :return:
         """
         self.Manager.sync()

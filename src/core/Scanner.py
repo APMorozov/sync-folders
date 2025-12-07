@@ -39,6 +39,11 @@ class Scanner:
 
     @staticmethod
     def take_empty_dir(path_to_folder: Path) -> set[Path]:
+        """
+        Поиск всех пустых папок и подпапок в указанной директории
+        :param path_to_folder: директория для поиска
+        :return: сэт пустых папок
+        """
         empty_dir = []
         path_folder = Path(path_to_folder)
         for directory in path_folder.walk():
