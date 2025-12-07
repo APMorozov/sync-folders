@@ -1,4 +1,4 @@
-from src.core.history.DirHistory import DirHistory
+from src.utils.hash_compute import hash_file_sha1
 
 from pathlib import Path
 import shutil
@@ -13,24 +13,28 @@ class Synchronizer:
         self.pc_folder = pc_folder
         self.flash_folder = flash_folder
 
-    def synchronize(self, no_on_pc: set[Path], no_on_flash: set[Path]):
-        """
-        Копирование файлов между директориями
-        :param no_on_pc: пути к файлам которых нет на пк(нужно удалить)
-        :param no_on_flash: пути к файлам которых нет на флэшке
-        :return:
-        """
-        for file in no_on_pc:
-            os.remove(self.flash_folder / file)
-
-        for file in no_on_flash:
+    def copy_files(self, files):
+        for file in files:
             path = self.flash_folder / file
             path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(self.pc_folder / file, path,)
+
+    def delete_files(self, files):
+        for file in files:
+            os.remove(self.flash_folder / file)
 
     @staticmethod
     def delete_empty_dir(empty_dir: set[Path]):
         for dir in empty_dir:
             os.rmdir(dir)
+
+    def update_files(self, files: set[Path]):
+        files_to_update = set()
+        for file in files:
+            path_to_pc_file = self.pc_folder / file
+            path_to_flash_file = self.flash_folder / file
+            if hash_file_sha1(path_to_pc_file.__str__()) != hash_file_sha1(path_to_flash_file.__str__()):
+                files_to_update.add(file)
+        self.copy_files(files_to_update)
 
 

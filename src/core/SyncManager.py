@@ -36,13 +36,15 @@ class SyncManager:
             print("No on flash", no_on_flash)
             print("\n\n\n")
 
-            self.Synchronizer.synchronize(no_on_pc, no_on_flash)
+            self.Synchronizer.copy_files(no_on_flash)
+            self.Synchronizer.delete_files(no_on_pc)
             pc_empty_dir = Scanner.take_empty_dir(self.pc_folder)
             flash_empty_dir = Scanner.take_empty_dir(self.flash_folder)
             print("Empty pc: ", pc_empty_dir)
             print("Empty flash: ", flash_empty_dir)
             self.Synchronizer.delete_empty_dir(pc_empty_dir)
             self.Synchronizer.delete_empty_dir(flash_empty_dir)
+            self.Synchronizer.update_files(pc_set_of_files)
             time.sleep(15)
 
 
