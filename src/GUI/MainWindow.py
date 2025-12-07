@@ -1,11 +1,15 @@
-import sys
-from PyQt6.QtWidgets import (
+from src.core.EventBus import EventBus
+
+
+from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton, QListWidget, QVBoxLayout,
-    QHBoxLayout, QFileDialog, QComboBox, QLineEdit
+    QHBoxLayout, QFileDialog, QLineEdit, QSystemTrayIcon, QMenu,
+    QMessageBox
 )
-from PyQt6.QtGui import QPalette, QColor
-from PyQt6.QtCore import Qt, QTimer
+from PySide6.QtGui import QPalette, QColor, QIcon
+from PySide6.QtCore import Qt
 from pathlib import Path
+import time
 
 from src.core.SyncManager import SyncManager
 from src.utils.file_work import write_json, read_json
@@ -16,18 +20,6 @@ class SyncApp(QWidget):
     def set_data_from_config(self, data):
         self.pc_folder.setText(data.get("pc_folder", ""))
         self.flash_folder.setText(data.get("flash_folder", ""))
-
-        self.interval = data.get("sync_interval_sec", 360)
-
-        mapping = {
-            360: 0,
-            3000: 1,
-            6000: 2,
-            86400: 3,
-            15: 4
-        }
-        self.freq_combo.setCurrentIndex(mapping.get(self.interval, 0))
-
         self.ignore_list.clear()
         for folder in data.get("ignore_files", []):
             self.ignore_list.addItem(folder)
@@ -41,9 +33,15 @@ class SyncApp(QWidget):
         self.init_ui()
         self.path_to_config = path_to_config
         self.set_data_from_config(read_json(self.path_to_config))
-        self.Manager = SyncManager(read_json(self.path_to_config))
-        self.sync_timer = QTimer()
-        self.sync_timer.timeout.connect(self.auto_sync)
+
+        self.tray = QSystemTrayIcon(QIcon("images.jpg"), self)
+        tray_menu = QMenu()
+        tray_menu.addAction("Открыть", self.show_window)
+        tray_menu.addAction("Выход", self.exit_app)
+        self.tray.setContextMenu(tray_menu)
+        self.Bus = EventBus()
+        self.Bus.usb_detected.connect(self.ask_password)
+
 
     def init_ui(self):
         """
@@ -84,19 +82,7 @@ class SyncApp(QWidget):
         row_dst.addWidget(self.flash_folder)
         row_dst.addWidget(btn_dst)
 
-        freq_label = QLabel("Частота синхронизации:")
-        self.freq_combo = QComboBox()
-        self.freq_combo.addItems([
-            "Каждые 5 минут",
-            "Каждые 30 минут",
-            "Каждый час",
-            "Каждый день",
-            "Каждые 15 сек"
-        ])
 
-        row_freq = QHBoxLayout()
-        row_freq.addWidget(freq_label)
-        row_freq.addWidget(self.freq_combo)
 
         ignore_label = QLabel("Игнорируемые папки:")
 
@@ -118,7 +104,6 @@ class SyncApp(QWidget):
 
         main_layout.addLayout(row_src)
         main_layout.addLayout(row_dst)
-        main_layout.addLayout(row_freq)
 
         main_layout.addWidget(ignore_label)
         main_layout.addWidget(self.ignore_list)
@@ -128,22 +113,21 @@ class SyncApp(QWidget):
 
         self.setLayout(main_layout)
 
-    def take_sync_interval(self):
-        """
-        Подтягивает выбранное пользователем время из интерфейса
-        :return: интервал синхронизации: сек
-        """
-        match self.freq_combo.currentIndex():
-            case 0:
-                return 360 #Вынести в константы
-            case 1:
-                return 3000
-            case 2:
-                return 6000
-            case 3:
-                return 86400
-            case 4:
-                return 15
+    def hide_to_tray(self):
+        self.tray.show()
+        self.hide()
+
+    def show_window(self):
+        self.show()
+        self.raise_()
+
+    def ask_password(self):
+        QMessageBox.information(self, "USB", "Обнаружено устройство. Введите пароль.")
+        self.auto_sync()
+
+    def exit_app(self):
+        self.tray.hide()
+        QApplication.quit()
 
     def transform_path_ignore_folders(self) -> list[str]:
         """
@@ -151,7 +135,7 @@ class SyncApp(QWidget):
         :return:
         """
         ignore_array = [self.ignore_list.item(i).text() for i in range(self.ignore_list.count())]
-        transformed_folders = [Path(path).parts[-1] for path in ignore_array ]
+        transformed_folders = [Path(path).parts[-1] for path in ignore_array]
         return transformed_folders
 
     def update_settings_file(self):
@@ -160,8 +144,7 @@ class SyncApp(QWidget):
         :return:
         """
         data = {"pc_folder": self.pc_folder.text(), "flash_folder": self.flash_folder.text(),
-                "ignore_files": self.transform_path_ignore_folders(), "sync_interval_sec": self.take_sync_interval()}
-        print("Update config:", data)
+                "ignore_files": self.transform_path_ignore_folders()}
         write_json(self.path_to_config, data)
 
     def choose_pc_folder(self):
@@ -204,8 +187,7 @@ class SyncApp(QWidget):
         Синхронизация происходящая каждый интервал
         :return:
         """
-        self.Manager.go()
-        self.sync_timer.start(self.interval * 1000)
+        self.Manager.sync()
 
     def sync_action(self):
         """
@@ -213,7 +195,8 @@ class SyncApp(QWidget):
         :return:
         """
         self.update_settings_file()
-        self.Manager.start_sync()
+        self.Manager = SyncManager(read_json(self.path_to_config))
         self.auto_sync()
+        self.hide_to_tray()
 
 
