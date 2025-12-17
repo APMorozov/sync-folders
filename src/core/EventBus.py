@@ -5,6 +5,7 @@ import time
 
 """Класс реализующий логику мониторинга подключенных устройств и сигнализацию о новых подключениях"""
 
+
 class EventBus(QObject):
     usb_detected = Signal(Path)
 

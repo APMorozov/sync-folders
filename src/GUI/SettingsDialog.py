@@ -73,8 +73,6 @@ class SettingsDialog(QDialog):
         for folder in data.get("ignore_files", []):
             self.ignore_list.addItem(folder)
 
-    # === ЛОГИКА 1 В 1 КАК В ТВОЁМ SyncApp ===
-
     def choose_pc_folder(self):
         folder = QFileDialog.getExistingDirectory(self, "Выбор исходной папки")
         if folder:

@@ -33,6 +33,7 @@ class SyncApp(QWidget):
         self.Bus = EventBus(read_json(path_to_config)["pc_folder"])
         self.Bus.usb_detected.connect(self.ask_password)
 
+
     def init_ui(self):
         self.setWindowTitle("Cинхронизатор файлов")
         self.resize(520, 400)
@@ -70,17 +71,15 @@ class SyncApp(QWidget):
         for folder in data.get("ignore_files", []):
             self.ignore_list.addItem(folder)
 
-    # === НОВОЕ: открытие окна настроек ===
-
     def open_settings(self):
         dialog = SettingsDialog(read_json(self.path_to_config), self)
 
         if dialog.exec():
+            self.Manager = SyncManager(read_json(self.path_to_config))
+            self.Manager.initialize_flash()
             new_config = dialog.get_config()
             write_json(self.path_to_config, new_config)
             self.set_data_from_config(new_config)
-
-    # === ВСЯ ТВОЯ ЛОГИКА НИЖЕ БЕЗ ИЗМЕНЕНИЙ ===
 
     def ask_password(self, path_flash: Path):
         QMessageBox.information(self, "USB", "Обнаружено устройство. Введите пароль.")
