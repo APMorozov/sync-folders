@@ -44,9 +44,8 @@ class SyncApp(QWidget):
         tray_menu.addAction("Открыть", self.show_window)
         tray_menu.addAction("Выход", self.exit_app)
         self.tray.setContextMenu(tray_menu)
-        self.Bus = EventBus()
+        self.Bus = EventBus(read_json(path_to_config)["pc_folder"])
         self.Bus.usb_detected.connect(self.ask_password)
-
 
     def init_ui(self):
         """
@@ -69,6 +68,9 @@ class SyncApp(QWidget):
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(15)
 
+        # ---- Путь к папке на компьютере ----
+        pc_label = QLabel("Путь до папки на компьютере")
+
         self.pc_folder = QLineEdit()
         self.pc_folder.setPlaceholderText("Выберите исходную папку...")
         btn_src = QPushButton("Выбрать…")
@@ -77,6 +79,9 @@ class SyncApp(QWidget):
         row_src = QHBoxLayout()
         row_src.addWidget(self.pc_folder)
         row_src.addWidget(btn_src)
+
+        # ---- Путь к папке на флэшке ----
+        flash_label = QLabel("Путь до папки на флэшке")
 
         self.flash_folder = QLineEdit()
         self.flash_folder.setPlaceholderText("Выберите целевую папку...")
@@ -87,10 +92,8 @@ class SyncApp(QWidget):
         row_dst.addWidget(self.flash_folder)
         row_dst.addWidget(btn_dst)
 
-
-
+        # ---- Игнорируемые папки ----
         ignore_label = QLabel("Игнорируемые папки:")
-
         self.ignore_list = QListWidget()
 
         btn_add_ignore = QPushButton("Добавить папку…")
@@ -103,18 +106,34 @@ class SyncApp(QWidget):
         row_ignore_btns.addWidget(btn_add_ignore)
         row_ignore_btns.addWidget(btn_remove_ignore)
 
+        # ---- Нижние кнопки ----
+        btn_tray = QPushButton("Свернуть в трэй")
+        btn_tray.clicked.connect(self.hide_to_tray)
+
         btn_sync = QPushButton("Синхронизировать")
-        btn_sync.setFixedHeight(40)
         btn_sync.clicked.connect(self.sync_action)
 
+        btn_update_cfg = QPushButton("Обновить файл настроек")
+        btn_update_cfg.clicked.connect(self.update_settings_file)
+
+        bottom_buttons = QHBoxLayout()
+        bottom_buttons.addWidget(btn_tray)
+        bottom_buttons.addStretch()
+        bottom_buttons.addWidget(btn_update_cfg)
+        bottom_buttons.addWidget(btn_sync)
+
+        # ---- Сборка интерфейса ----
+        main_layout.addWidget(pc_label)
         main_layout.addLayout(row_src)
+
+        main_layout.addWidget(flash_label)
         main_layout.addLayout(row_dst)
 
         main_layout.addWidget(ignore_label)
         main_layout.addWidget(self.ignore_list)
         main_layout.addLayout(row_ignore_btns)
 
-        main_layout.addWidget(btn_sync)
+        main_layout.addLayout(bottom_buttons)
 
         self.setLayout(main_layout)
 
@@ -134,12 +153,20 @@ class SyncApp(QWidget):
         self.show()
         self.raise_()
 
-    def ask_password(self):
+    def update_flash_path(self, path_flash: Path):
+        data = {"pc_folder": self.pc_folder.text(), "flash_folder": path_flash.__str__(),
+                "ignore_files": self.transform_path_ignore_folders()}
+        write_json(self.path_to_config, data)
+
+    def ask_password(self, path_flash: Path):
         """
         Запрос пароля при обнаружении флэшки
         :return:
         """
         QMessageBox.information(self, "USB", "Обнаружено устройство. Введите пароль.")
+        self.set_data_from_config(read_json(self.path_to_config))
+        self.update_flash_path(path_flash)
+        self.Manager = SyncManager(read_json(self.path_to_config)) 
         self.auto_sync()
 
     def exit_app(self):
@@ -218,6 +245,5 @@ class SyncApp(QWidget):
         self.update_settings_file()
         self.Manager = SyncManager(read_json(self.path_to_config))
         self.auto_sync()
-        self.hide_to_tray()
 
 
