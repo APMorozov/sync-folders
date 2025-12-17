@@ -33,7 +33,6 @@ class SyncApp(QWidget):
         self.Bus = EventBus(read_json(path_to_config)["pc_folder"])
         self.Bus.usb_detected.connect(self.ask_password)
 
-
     def init_ui(self):
         self.setWindowTitle("Cинхронизатор файлов")
         self.resize(520, 400)
@@ -61,8 +60,16 @@ class SyncApp(QWidget):
         btn_sync = QPushButton("Синхронизировать")
         btn_sync.clicked.connect(self.sync_action)
 
-        main_layout.addWidget(btn_settings)
-        main_layout.addWidget(btn_sync)
+        btn_tray = QPushButton("Свернуть в трэй")
+        btn_tray.clicked.connect(self.hide_to_tray)
+
+        bottom_buttons = QHBoxLayout()
+        bottom_buttons.addWidget(btn_tray)
+        bottom_buttons.addStretch()
+        bottom_buttons.addWidget(btn_settings)
+        bottom_buttons.addWidget(btn_sync)
+
+        main_layout.addLayout(bottom_buttons)
 
     def set_data_from_config(self, data: dict):
         self.pc_folder.setText(data.get("pc_folder", ""))
