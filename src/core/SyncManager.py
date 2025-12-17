@@ -62,9 +62,8 @@ class SyncManager:
             return True
 
         except Exception as e:
-            print("ERRRRRROR; ", e)
             return False
-        
+
     def sync(self):
         pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
         flash_set_of_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)

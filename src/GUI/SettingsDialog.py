@@ -68,7 +68,8 @@ class SettingsDialog(QDialog):
 
     def set_data_from_config(self, data: dict):
         self.pc_folder.setText(data.get("pc_folder", ""))
-        self.flash_folder.setText(data.get("flash_folder", ""))
+        path_flash_root = Path(data.get("flash_folder", "")).parts[0]
+        self.flash_folder.setText(path_flash_root)
         self.ignore_list.clear()
         for folder in data.get("ignore_files", []):
             self.ignore_list.addItem(folder)
