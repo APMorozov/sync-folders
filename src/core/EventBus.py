@@ -25,7 +25,6 @@ class EventBus(QObject):
 
             for drive in new_drives:
                 if self._is_valid_flash(drive):
-                    # ⬅️ ВАЖНО: передаём КОРЕНЬ ФЛЕШКИ
                     self.usb_detected.emit(Path(drive) / Path(self.pc_folder_name))
 
             known = drives
