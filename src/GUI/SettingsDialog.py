@@ -67,12 +67,15 @@ class SettingsDialog(QDialog):
         layout.addLayout(bottom)
 
     def set_data_from_config(self, data: dict):
-        self.pc_folder.setText(data.get("pc_folder", ""))
-        path_flash_root = Path(data.get("flash_folder", "")).parts[0]
-        self.flash_folder.setText(path_flash_root)
-        self.ignore_list.clear()
-        for folder in data.get("ignore_files", []):
-            self.ignore_list.addItem(folder)
+        try:
+            self.pc_folder.setText(data.get("pc_folder", ""))
+            path_flash_root = Path(data.get("flash_folder", "")).parts[0]
+            self.flash_folder.setText(path_flash_root)
+            self.ignore_list.clear()
+            for folder in data.get("ignore_files", []):
+                self.ignore_list.addItem(folder)
+        except Exception:
+            print("Hello")
 
     def choose_pc_folder(self):
         folder = QFileDialog.getExistingDirectory(self, "Выбор исходной папки")

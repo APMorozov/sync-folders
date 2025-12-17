@@ -82,11 +82,15 @@ class SyncApp(QWidget):
         dialog = SettingsDialog(read_json(self.path_to_config), self)
 
         if dialog.exec():
-            self.Manager = SyncManager(read_json(self.path_to_config))
-            self.Manager.initialize_flash()
             new_config = dialog.get_config()
+            pc_sync_dir = Path(new_config["pc_folder"])
+            new_config["flash_folder"] = (Path(new_config["flash_folder"]) / pc_sync_dir.parts[-1]).__str__()
             write_json(self.path_to_config, new_config)
             self.set_data_from_config(new_config)
+            self.Manager = SyncManager(read_json(self.path_to_config))
+            self.Manager.initialize_flash()
+            self.Bus.update_pc_folder(new_config["pc_folder"])
+
 
     def ask_password(self, path_flash: Path):
         QMessageBox.information(self, "USB", "Обнаружено устройство. Введите пароль.")

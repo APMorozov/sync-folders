@@ -13,6 +13,9 @@ class EventBus(QObject):
         super().__init__()
         self.pc_folder_name = Path(pc_folder).name
 
+    def update_pc_folder(self, pc_folder: str):
+        self.pc_folder_name = Path(pc_folder).name
+
     def usb_monitor(self):
         known = set()
 
@@ -33,6 +36,7 @@ class EventBus(QObject):
 
     def _is_valid_flash(self, drive: str) -> bool:
         drive = Path(drive)
+        print("Drive: ", drive)
         return (
             (drive / self.pc_folder_name).is_dir()
             and (drive / self.pc_folder_name / ".sync").is_dir()

@@ -27,6 +27,12 @@ class SyncManager:
         alphabet = string.ascii_letters + string.digits
         return "".join(random.choice(alphabet) for _ in range(length))
 
+    def write_code_to_pc(self, code):
+        sync_dir = Path(self.pc_folder) / Path(self.settings_dir)
+        code_file = sync_dir / Path("code")
+        code_file.parent.mkdir(parents=True, exist_ok=True)
+        code_file.write_text(code, encoding="utf-8")
+
     def initialize_flash(self) -> bool:
         """
         Создаёт структуру на флешке для валидации:
@@ -35,25 +41,17 @@ class SyncManager:
         :return: True если создано / уже существует
         """
         try:
-
-            flash_root = Path(self.flash_folder)
-
-
-            target_dir = flash_root / Path(self.pc_folder).name
-
-
-            sync_dir = target_dir / Path(self.settings_dir)
-
+            sync_dir = Path(self.flash_folder) / Path(self.settings_dir)
 
             code_file = sync_dir / Path("code")
 
-            target_dir.mkdir(parents=True, exist_ok=True)
             sync_dir.mkdir(parents=True, exist_ok=True)
-
+            print("code_file: ", code_file)
             if not code_file.exists():
                 code = self._generate_code()
                 code_file.parent.mkdir(parents=True, exist_ok=True)
                 code_file.write_text(code, encoding="utf-8")
+                self.write_code_to_pc(code)
 
                 print("Flash initialized with code:", code)
             else:

@@ -2,7 +2,6 @@
     "pc_folder": "C:/Users/moroz/OneDrive/Desktop/3-kurs/Kursovaia/sync-folders/storage",
     "flash_folder": "E:\\storage",
     "ignore_files": [
-        ".sync",
-        "pc"
+        ".sync"
     ]
 }
