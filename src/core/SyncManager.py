@@ -53,16 +53,13 @@ class SyncManager:
 
             sync_dir.mkdir(parents=True, exist_ok=True)
             print("code_file: ", code_file)
-            if not code_file.exists():
-                code = self._generate_code()
-                code_file.parent.mkdir(parents=True, exist_ok=True)
-                code_file.write_text(code, encoding="utf-8")
-                self.write_code_to_pc(code)
 
-                print("Flash initialized with code:", code)
-            else:
-                print("Flash already initialized")
+            code = self._generate_code()
+            code_file.parent.mkdir(parents=True, exist_ok=True)
+            code_file.write_text(code, encoding="utf-8")
+            self.write_code_to_pc(code)
 
+            print("Flash initialized with code:", code)
             return True
 
         except Exception as e:

@@ -43,7 +43,7 @@ class EventBus(QObject):
                  and (drive / pc_folder_name / ".sync" / "code").is_file())
         if valid:
             flash_code = (drive / pc_folder_name / ".sync" / "code")
-            pc_code =(self.pc_folder / ".sync" / "code")
+            pc_code = (self.pc_folder / ".sync" / "code")
             if flash_code.read_text("utf-8") == pc_code.read_text("utf-8"):
                 return True
         return False

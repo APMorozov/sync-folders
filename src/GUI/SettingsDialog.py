@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QListWidget, QFileDialog
+    QLineEdit, QPushButton, QListWidget, QFileDialog, QMessageBox
 )
 from pathlib import Path
 
@@ -15,6 +15,7 @@ class SettingsDialog(QDialog):
         self.init_ui()
         self.set_data_from_config(self._config)
 
+
     def init_ui(self):
         layout = QVBoxLayout(self)
 
@@ -28,6 +29,7 @@ class SettingsDialog(QDialog):
         row_pc.addWidget(btn_pc)
         layout.addLayout(row_pc)
 
+
         layout.addWidget(QLabel("Путь до корня флэшки"))
         self.flash_folder = QLineEdit()
         btn_flash = QPushButton("Выбрать…")
@@ -38,12 +40,13 @@ class SettingsDialog(QDialog):
         row_flash.addWidget(btn_flash)
         layout.addLayout(row_flash)
 
+
         layout.addWidget(QLabel("Игнорируемые папки"))
         self.ignore_list = QListWidget()
 
         btn_add = QPushButton("Добавить папку…")
-        btn_add.clicked.connect(self.add_ignore_folder)
         btn_remove = QPushButton("Удалить выбранную")
+        btn_add.clicked.connect(self.add_ignore_folder)
         btn_remove.clicked.connect(self.remove_ignore_folder)
 
         row_ignore = QHBoxLayout()
@@ -56,7 +59,7 @@ class SettingsDialog(QDialog):
         btn_apply = QPushButton("Применить")
         btn_cancel = QPushButton("Отмена")
 
-        btn_apply.clicked.connect(self.accept)
+        btn_apply.clicked.connect(self.on_apply)
         btn_cancel.clicked.connect(self.reject)
 
         bottom = QHBoxLayout()
@@ -66,42 +69,17 @@ class SettingsDialog(QDialog):
 
         layout.addLayout(bottom)
 
+
     def set_data_from_config(self, data: dict):
-        try:
-            self.pc_folder.setText(data.get("pc_folder", ""))
-            path_flash_root = Path(data.get("flash_folder", "")).parts[0]
-            self.flash_folder.setText(path_flash_root)
-            self.ignore_list.clear()
-            for folder in data.get("ignore_files", []):
-                self.ignore_list.addItem(folder)
-        except Exception:
-            print("Hello")
+        self.pc_folder.setText(data.get("pc_folder", ""))
 
-    def choose_pc_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Выбор исходной папки")
-        if folder:
-            self.pc_folder.setText(folder)
+        flash = data.get("flash_folder", "")
+        if flash:
+            self.flash_folder.setText(self.extract_root(flash))
 
-    def choose_flash_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Выбор целевой папки")
-        if folder:
-            self.flash_folder.setText(folder)
-
-    def add_ignore_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Выберите папку для игнорирования")
-        if folder:
+        self.ignore_list.clear()
+        for folder in data.get("ignore_files", []):
             self.ignore_list.addItem(folder)
-
-    def remove_ignore_folder(self):
-        for item in self.ignore_list.selectedItems():
-            self.ignore_list.takeItem(self.ignore_list.row(item))
-
-    def transform_path_ignore_folders(self) -> list[str]:
-        """ Приводит пути взятые из интерфейса к виду с которым работает ядро приложения :return: """
-
-        ignore_array = [self.ignore_list.item(i).text() for i in range(self.ignore_list.count())]
-        transformed_folders = [Path(path).parts[-1] for path in ignore_array]
-        return transformed_folders
 
     def get_config(self) -> dict:
         return {
@@ -109,3 +87,105 @@ class SettingsDialog(QDialog):
             "flash_folder": self.flash_folder.text(),
             "ignore_files": self.transform_path_ignore_folders()
         }
+
+
+    def on_apply(self):
+        if not self.validate():
+            return
+        self.accept()
+
+    def validate(self) -> bool:
+        if not self.pc_folder.text().strip():
+            self.error("Не выбран путь к папке на компьютере")
+            return False
+
+        if not self.flash_folder.text().strip():
+            self.error("Не выбран путь к флэшке")
+            return False
+
+        if not self.is_root_path(self.flash_folder.text()):
+            self.error(
+                "Путь к флэшке должен указывать на КОРЕНЬ устройства\n\n"
+                "Пример:\nE:\\"
+            )
+            return False
+
+        return True
+
+    def error(self, text: str):
+        QMessageBox.warning(self, "Ошибка", text)
+
+
+    @staticmethod
+    def extract_root(path: str) -> str:
+        """E:\\storage -> E:\\"""
+        p = Path(path)
+        return p.anchor or p.parts[0]
+
+    @staticmethod
+    def is_root_path(path: str) -> bool:
+        p = Path(path)
+        return p.parent == p
+
+
+    def choose_pc_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Выбор исходной папки")
+        if folder:
+            self.pc_folder.setText(folder)
+
+    def choose_flash_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Выбор корня флэшки")
+        if folder:
+            self.flash_folder.setText(self.extract_root(folder))
+
+    def add_ignore_folder(self):
+        if not self.pc_folder.text():
+            self.error("Сначала выберите папку для синхронизации на компьютере")
+            return
+
+        base_path = Path(self.pc_folder.text())
+        folder = QFileDialog.getExistingDirectory(
+            self, "Выберите папку для игнорирования", str(base_path)
+        )
+
+        if not folder:
+            return
+
+        folder_path = Path(folder)
+
+
+        try:
+            relative = folder_path.relative_to(base_path)
+        except ValueError:
+            self.error("Игнорируемая папка должна находиться внутри папки синхронизации")
+            return
+
+        relative_str = relative.as_posix()
+
+        if relative.parts[0] == ".sync":
+            self.error("Папку .sync нельзя добавлять в игнорируемые")
+            return
+
+        existing = [
+            self.ignore_list.item(i).text()
+            for i in range(self.ignore_list.count())
+        ]
+
+        if relative_str in existing:
+            self.error(f"Папка «{relative_str}» уже находится в игнорируемых")
+            return
+
+        self.ignore_list.addItem(relative_str)
+
+    def remove_ignore_folder(self):
+        for item in self.ignore_list.selectedItems():
+            if Path(item.text()).name == ".sync":
+                self.error("Папку .sync нельзя удалить из игнорируемых")
+                return
+            self.ignore_list.takeItem(self.ignore_list.row(item))
+
+    def transform_path_ignore_folders(self) -> list[str]:
+        return [
+            self.ignore_list.item(i).text()
+            for i in range(self.ignore_list.count())
+        ]
