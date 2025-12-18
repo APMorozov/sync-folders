@@ -21,18 +21,20 @@ class SyncApp(QWidget):
         super().__init__()
         self.path_to_config = path_to_config
 
-        self.init_ui()
+        EventBus.load_or_create_config(self.path_to_config)
+        self.Bus = EventBus(read_json(path_to_config)["pc_folder"])
+        self.Bus.usb_detected.connect(self.ask_password)
 
+
+        self.Manager = SyncManager(read_json(self.path_to_config))
+
+        self.init_ui()
+        self.set_data_from_config(read_json(self.path_to_config))
         self.tray = QSystemTrayIcon(QIcon("images.jpg"), self)
         tray_menu = QMenu()
         tray_menu.addAction("Открыть", self.show_window)
         tray_menu.addAction("Выход", self.exit_app)
         self.tray.setContextMenu(tray_menu)
-
-        self.Bus = EventBus(read_json(path_to_config)["pc_folder"])
-        self.Bus.usb_detected.connect(self.ask_password)
-
-        self.Manager = SyncManager(read_json(self.path_to_config))
 
     def init_ui(self):
         self.setWindowTitle("Cинхронизатор файлов")
@@ -108,12 +110,41 @@ class SyncApp(QWidget):
         write_json(self.path_to_config, data)
 
     def sync_action(self):
-        flash_folder = read_json(self.path_to_config)["flash_folder"]
-        flash_folder = Path(flash_folder).parts
-        if self.Bus.is_valid_flash(flash_folder[0]):
-            self.Manager.sync()
-        else:
-            print("OSENI")
+        config = read_json(self.path_to_config)
+
+        pc_folder = config.get("pc_folder", "")
+        flash_folder = config.get("flash_folder", "")
+
+        if not pc_folder:
+            QMessageBox.warning(
+                self,
+                "Ошибка синхронизации",
+                "Не выбран путь к папке на компьютере.\n\n"
+                "Откройте «Настройки» и укажите папку для синхронизации."
+            )
+            return
+
+        if not flash_folder:
+            QMessageBox.warning(
+                self,
+                "Ошибка синхронизации",
+                "Не выбран путь к флэшке.\n\n"
+                "Подключите флэшку или укажите путь в настройках."
+            )
+            return
+
+        flash_root = Path(flash_folder).parts[0]
+
+        if not self.Bus.is_valid_flash(flash_root):
+            QMessageBox.warning(
+                self,
+                "Ошибка синхронизации",
+                "Не обнаружена флэшка которая является валидной.\n\n"
+                "Убедитесь, что подключено ранее инициализированное устройство."
+            )
+            return
+
+        self.Manager.sync()
 
     def hide_to_tray(self):
         self.tray.show()

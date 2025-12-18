@@ -1,3 +1,5 @@
+from src.utils.file_work import read_json, write_json
+
 from pathlib import Path
 import psutil
 from PySide6.QtCore import Signal, QObject
@@ -47,3 +49,38 @@ class EventBus(QObject):
             if flash_code.read_text("utf-8") == pc_code.read_text("utf-8"):
                 return True
         return False
+
+    @staticmethod
+    def load_or_create_config(path: str) -> None:
+        default_config = {
+            "pc_folder": "",
+            "flash_folder": "",
+            "ignore_files": [".sync"]
+        }
+        config_path = Path(path)
+
+        if not config_path.exists():
+            write_json(path, default_config)
+            return
+
+        if config_path.stat().st_size == 0:
+            write_json(path, default_config)
+            return
+
+        try:
+            data = read_json(path)
+        except Exception:
+            write_json(path, default_config)
+            return
+
+        if not isinstance(data, dict):
+            write_json(path, default_config)
+            return
+
+        fixed = default_config.copy()
+        fixed.update(data)
+
+        if ".sync" not in fixed["ignore_files"]:
+            fixed["ignore_files"].insert(0, ".sync")
+
+        write_json(path, fixed)
