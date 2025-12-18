@@ -13,6 +13,10 @@ class Synchronizer:
         self.pc_folder = pc_folder
         self.flash_folder = flash_folder
 
+    def update_config(self, pc_folder: Path, flash_folder: Path):
+        self.pc_folder = pc_folder
+        self.flash_folder = flash_folder
+
     def copy_files(self, files):
         """
         Копирует файлы на флэшку

@@ -27,6 +27,7 @@ class SyncManager:
         self.pc_folder = config["pc_folder"]
         self.flash_folder = config["flash_folder"]
         self.ignore_files = config["ignore_files"]
+        self.Synchronizer.update_config(Path(self.pc_folder), Path(self.flash_folder))
 
     def _generate_code(self, length: int = 10) -> str:
         alphabet = string.ascii_letters + string.digits
