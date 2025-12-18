@@ -1,4 +1,5 @@
 from src.GUI.SettingsDialog import SettingsDialog
+from src.GUI.SyncResultDialog import SyncResultDialog
 from src.core.EventBus import EventBus
 
 
@@ -23,7 +24,7 @@ class SyncApp(QWidget):
 
         EventBus.load_or_create_config(self.path_to_config)
         self.Bus = EventBus(read_json(path_to_config)["pc_folder"])
-        self.Bus.usb_detected.connect(self.ask_password)
+        self.Bus.usb_detected.connect(self.flash_find)
 
 
         self.Manager = SyncManager(read_json(self.path_to_config))
@@ -96,8 +97,8 @@ class SyncApp(QWidget):
             self.Bus.update_pc_folder(new_config["pc_folder"])
 
 
-    def ask_password(self, path_flash: Path):
-        QMessageBox.information(self, "USB", "Обнаружено устройство. Введите пароль.")
+    def flash_find(self, path_flash: Path):
+        QMessageBox.information(self, "USB", "Обнаружено инициализированное устройство.")
         self.update_flash_path(path_flash)
         config = read_json(self.path_to_config)
         self.set_data_from_config(config)
@@ -145,9 +146,8 @@ class SyncApp(QWidget):
             return
 
         errors, copied_files, updated_files = self.Manager.sync()
-        print("ERRORS: ", errors)
-        print("COPY_FILES", copied_files)
-        print("UPDATE: ", updated_files)
+        dialog = SyncResultDialog(errors, copied_files, updated_files, parent=self)
+        dialog.exec()
 
 
     def hide_to_tray(self):
