@@ -108,8 +108,12 @@ class SyncApp(QWidget):
         write_json(self.path_to_config, data)
 
     def sync_action(self):
-        self.Manager.update_config(read_json(self.path_to_config))
-        self.Manager.sync()
+        flash_folder = read_json(self.path_to_config)["flash_folder"]
+        flash_folder = Path(flash_folder).root
+        if self.Bus.is_valid_flash(flash_folder):
+            self.Manager.sync()
+        else:
+            print("OSENI")
 
     def hide_to_tray(self):
         self.tray.show()
