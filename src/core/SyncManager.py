@@ -76,7 +76,7 @@ class SyncManager:
         print("No on flash", no_on_flash)
         print("\n\n\n")
 
-        self.Synchronizer.copy_files(no_on_flash)
+        errors_copy, copied_files = self.Synchronizer.copy_files(no_on_flash)
         self.Synchronizer.delete_files(no_on_pc)
         pc_empty_dir = Scanner.take_empty_dir(self.pc_folder)
         flash_empty_dir = Scanner.take_empty_dir(self.flash_folder)
@@ -84,7 +84,8 @@ class SyncManager:
         print("Empty flash: ", flash_empty_dir)
         self.Synchronizer.delete_empty_dir(pc_empty_dir)
         self.Synchronizer.delete_empty_dir(flash_empty_dir)
-        self.Synchronizer.update_files(pc_set_of_files)
+        errors_update, updated_files = self.Synchronizer.update_files(pc_set_of_files)
+        return errors_copy | errors_update, copied_files, updated_files
 
 
 

@@ -1,8 +1,21 @@
 from src.utils.hash_compute import hash_file_sha1
 
+from dataclasses import dataclass
 from pathlib import Path
 import shutil
 import os
+
+
+@dataclass
+class SyncInfo:
+    file: Path
+    reason: str
+
+    def __eq__(self, other):
+        return isinstance(other, SyncInfo) and self.file == other.file and self.reason == other.reason
+
+    def __hash__(self):
+        return hash((self.file, self.reason))
 
 
 class Synchronizer:
@@ -23,10 +36,26 @@ class Synchronizer:
         :param files: файлы для копирования
         :return:
         """
+
+        errors = set()
+        copied_files = []
+
         for file in files:
-            path = self.flash_folder / file
-            path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy(self.pc_folder / file, path,)
+            src = self.pc_folder / file
+            dst = self.flash_folder / file
+
+            dst.parent.mkdir(parents=True, exist_ok=True)
+
+            try:
+                shutil.copy2(src, dst)
+                copied_files.append(SyncInfo(src, "Файл успешно скопирован"))
+            except PermissionError:
+                errors.add(SyncInfo(src, "Файл занят другим процессом(попробуйте закрыть и повторить синхронизацию)"))
+            except Exception as e:
+
+                errors.add(SyncInfo(src, str(e)))
+
+        return errors, copied_files
 
     def delete_files(self, files):
         """
@@ -53,12 +82,21 @@ class Synchronizer:
         :param files: файлы в директории  (файлы должны быть и на флэшке и на пк)
         :return:
         """
+        errors_hash = set()
         files_to_update = set()
         for file in files:
             path_to_pc_file = self.pc_folder / file
             path_to_flash_file = self.flash_folder / file
-            if hash_file_sha1(path_to_pc_file.__str__()) != hash_file_sha1(path_to_flash_file.__str__()):
-                files_to_update.add(file)
-        self.copy_files(files_to_update)
+            try:
+                if hash_file_sha1(path_to_pc_file.__str__()) != hash_file_sha1(path_to_flash_file.__str__()):
+                    files_to_update.add(file)
+            except PermissionError:
+                errors_hash.add(
+                    SyncInfo(path_to_pc_file, "Файл занят другим процессом(попробуйте закрыть и повторить синхронизацию)"))
+            except Exception as e:
 
+                errors_hash.add(SyncInfo(path_to_pc_file, str(e)))
+
+        errors_copy, updated_files = self.copy_files(files_to_update)
+        return errors_copy | errors_hash, updated_files
 

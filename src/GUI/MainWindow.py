@@ -144,7 +144,11 @@ class SyncApp(QWidget):
             )
             return
 
-        self.Manager.sync()
+        errors, copied_files, updated_files = self.Manager.sync()
+        print("ERRORS: ", errors)
+        print("COPY_FILES", copied_files)
+        print("UPDATE: ", updated_files)
+
 
     def hide_to_tray(self):
         self.tray.show()
