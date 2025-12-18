@@ -109,8 +109,8 @@ class SyncApp(QWidget):
 
     def sync_action(self):
         flash_folder = read_json(self.path_to_config)["flash_folder"]
-        flash_folder = Path(flash_folder).root
-        if self.Bus.is_valid_flash(flash_folder):
+        flash_folder = Path(flash_folder).parts
+        if self.Bus.is_valid_flash(flash_folder[0]):
             self.Manager.sync()
         else:
             print("OSENI")
