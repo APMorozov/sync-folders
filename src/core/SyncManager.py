@@ -23,6 +23,11 @@ class SyncManager:
         self.settings_dir = Path(".sync")
         self.Synchronizer = Synchronizer(self.pc_folder, self.flash_folder)
 
+    def update_config(self, config: json):
+        self.pc_folder = config["pc_folder"]
+        self.flash_folder = config["flash_folder"]
+        self.ignore_files = config["ignore_files"]
+
     def _generate_code(self, length: int = 10) -> str:
         alphabet = string.ascii_letters + string.digits
         return "".join(random.choice(alphabet) for _ in range(length))
