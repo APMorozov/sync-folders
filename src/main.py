@@ -1,11 +1,9 @@
-from GUI.MainWindow import QApplication, SyncApp
-from src.utils.file_work import read_json
-
-import threading
-import sys
-
-
 if __name__ == "__main__":
+    from GUI.MainWindow import QApplication, SyncApp
+    from src.utils.file_work import read_json
+
+    import threading
+    import sys
     config = "C:\\Users\\moroz\\OneDrive\\Desktop\\3-kurs\\Kursovaia\\sync-folders\\src\\config.json"
     data = read_json(config)
     app = QApplication(sys.argv)

@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 import string
 import random
+import shutil
+
 
 
 
@@ -44,7 +46,7 @@ class SyncManager:
         Создаёт структуру на флешке для валидации:
         <flash_root>/<pc_folder_name>/.sync/code
 
-        :return: True если создано / уже существует
+        :return: True если создано
         """
         try:
             sync_dir = Path(self.flash_folder) / Path(self.settings_dir)
@@ -64,6 +66,32 @@ class SyncManager:
 
         except Exception as e:
             return False
+
+    def copy_code_from_flash(self):
+        """
+        Копирует файл .sync/code с флэшки в .sync/code на ПК
+        """
+
+        flash_root = Path(self.flash_folder)
+        pc_root = Path(self.pc_folder)
+
+        src = flash_root / ".sync" / "code"
+        dst = pc_root / ".sync" / "code"
+
+        if not src.exists() or not src.is_file():
+            raise FileNotFoundError(
+                f"Файл {src} не найден на флэшке"
+            )
+
+        dst.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            shutil.copy2(src, dst)
+        except PermissionError:
+            raise PermissionError(
+                f"Файл {dst} занят другим процессом"
+            )
+
 
     def sync(self):
         pc_set_of_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)

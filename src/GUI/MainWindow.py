@@ -1,3 +1,4 @@
+from src.GUI.AttachFlashDialog import AttachFlashDialog
 from src.GUI.SettingsDialog import SettingsDialog
 from src.GUI.SyncResultDialog import SyncResultDialog
 from src.core.EventBus import EventBus
@@ -73,7 +74,19 @@ class SyncApp(QWidget):
         bottom_buttons.addWidget(btn_settings)
         bottom_buttons.addWidget(btn_sync)
 
+        btn_attach = QPushButton("Присоединить флэшку")
+        btn_attach.clicked.connect(self.attach_flash)
+
+        bottom_buttons = QHBoxLayout()
+        bottom_buttons.addWidget(btn_tray)
+        bottom_buttons.addWidget(btn_attach)
+        bottom_buttons.addStretch()
+        bottom_buttons.addWidget(btn_settings)
+        bottom_buttons.addWidget(btn_sync)
+
         main_layout.addLayout(bottom_buttons)
+
+
 
 
     def set_data_from_config(self, data: dict):
@@ -95,6 +108,34 @@ class SyncApp(QWidget):
             self.Manager.update_config(read_json(self.path_to_config))
             self.Manager.initialize_flash()
             self.Bus.update_pc_folder(new_config["pc_folder"])
+
+    def attach_flash(self):
+        dialog = AttachFlashDialog(self)
+
+        if not dialog.exec():
+            return
+
+        result = dialog.get_result()
+
+        new_config = read_json(self.path_to_config)
+
+        new_config["pc_folder"] = result["pc_folder"]
+        new_config["flash_folder"] = result["flash_folder"]
+
+        write_json(self.path_to_config, new_config)
+
+        # обновляем всё
+        self.set_data_from_config(new_config)
+        self.Manager.update_config(new_config)
+        self.Bus.update_pc_folder(new_config["pc_folder"])
+
+        self.Manager.copy_code_from_flash()
+
+        QMessageBox.information(
+            self,
+            "Устройство присоединено",
+            "Флэшка успешно присоединена и готова к синхронизации."
+        )
 
 
     def flash_find(self, path_flash: Path):
