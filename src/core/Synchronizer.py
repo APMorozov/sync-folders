@@ -114,6 +114,11 @@ class Synchronizer:
                 elif action == Action.CONFLICT:
                     errors.append(SyncInfo(file, "Конфликтный файл"))
 
+                elif action == Action.UNKNOWN_FILE:
+                    errors.append(SyncInfo(file, "Не известный файл"))
+
+            except PermissionError as e:
+                errors.append(SyncInfo(file, "Ошибка файл занят другой программой попробуйте закрыть ее и перезапустить синхронизацию."))
             except Exception as e:
                 errors.append(SyncInfo(file, f"Ошибка: {str(e)}"))
 

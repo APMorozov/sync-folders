@@ -88,7 +88,6 @@ class SyncApp(QWidget):
 
 
 
-
     def set_data_from_config(self, data: dict):
         self.pc_folder.setText(data.get("pc_folder", ""))
         self.flash_folder.setText(data.get("flash_folder", ""))
@@ -188,7 +187,14 @@ class SyncApp(QWidget):
 
         errors, copied_files, updated_files = self.Manager.sync_by_attach()
         dialog = SyncResultDialog(errors, copied_files, updated_files, parent=self)
+        dialog.resolveRequested.connect(
+            self.resolve_sync_error
+        )
         dialog.exec()
+
+    def resolve_sync_error(self, sync_info, action):
+        rel_path = sync_info.file
+        print("YOU")
 
 
     def sync_by_btn(self):
@@ -228,7 +234,11 @@ class SyncApp(QWidget):
 
         errors, copied_files, updated_files = self.Manager.sync_by_btn()
         dialog = SyncResultDialog(errors, copied_files, updated_files, parent=self)
+        dialog.resolveRequested.connect(
+            self.resolve_sync_error
+        )
         dialog.exec()
+
 
 
     def hide_to_tray(self):

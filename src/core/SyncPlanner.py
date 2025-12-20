@@ -10,35 +10,10 @@ class Action(Enum):
     DELETE_PC = auto()
     DELETE_FLASH = auto()
     CONFLICT = auto()
-
+    UNKNOWN_FILE = auto()
 
 
 class SyncPlanner:
-
-    def get_update_action(self, files, state: StateManager, pc_folder: Path):
-        plan = {}
-        for f in files:
-            is_delete, deleted_at = state.is_deleted(f.__str__())
-            if is_delete:
-                continue
-            pc_abs_path = pc_folder / f
-            flash_abs_path = state.flash_folder / f
-            if hash_file_sha1(pc_abs_path.as_posix()) == hash_file_sha1(flash_abs_path.as_posix()):
-                continue
-
-            pc_abs_path = pc_folder / f
-            flash_abs_path = state.flash_folder / f
-            pc_changed = hash_file_sha1(pc_abs_path.as_posix()) != state.state["files"]["hash"]
-            fl_changed = hash_file_sha1(flash_abs_path.as_posix()) != state.state["files"]["hash"]
-
-            if pc_changed and fl_changed:
-                plan[f] = Action.CONFLICT
-            elif pc_changed:
-                plan[f] = Action.COPY_TO_FLASH
-            elif fl_changed:
-                plan[f] = Action.COPY_TO_PC
-        return plan
-
     @staticmethod
     def get_sync_plan_for_btn_action(no_on_pc: set[Path], no_on_flash: set[Path], state: StateManager,
                                         pc_folder: Path) -> dict[Path, Action]:
@@ -52,7 +27,8 @@ class SyncPlanner:
             #удалить
             if fl_f and not pc_f:
                 if f.__str__() not in state_files:
-                    plan[f] = Action.CONFLICT
+                    abs_path = state.flash_folder / f
+                    plan[abs_path.as_posix()] = Action.UNKNOWN_FILE
                 else:
                     plan[f] = Action.DELETE_FLASH
             if not fl_f and pc_f:
