@@ -1,5 +1,6 @@
 from src.utils.hash_compute import hash_file_sha1
 from src.core.SyncPlanner import Action
+from src.core.StateManager import StateManager
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -58,7 +59,27 @@ class Synchronizer:
 
         return errors, copied_files
 
-    def apply(self, plan: dict):
+    def copy_one_file(self, src: Path, dst: Path):
+        """
+        Копирует один файл безопасно:
+        - создаёт папки
+        - использует tmp + replace
+        """
+        dst.parent.mkdir(parents=True, exist_ok=True)
+
+        tmp = dst.with_suffix(dst.suffix + ".tmp")
+
+        try:
+            shutil.copy2(src, tmp)
+            tmp.replace(dst)
+        finally:
+            if tmp.exists():
+                try:
+                    tmp.unlink()
+                except Exception:
+                    pass
+
+    def apply_plan(self, plan: dict[Path, Action], state: StateManager):
         errors = []
         copied = []
         deleted = []
@@ -71,19 +92,23 @@ class Synchronizer:
                 if action == Action.COPY_TO_FLASH:
                     fl.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(pc, fl)
+                    state.update_file(file.as_posix(), fl)
                     copied.append(SyncInfo(file, "Файл успешно скопирован"))
 
                 elif action == Action.COPY_TO_PC:
                     pc.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(fl, pc)
+                    state.update_file(file.as_posix(), pc)
                     copied.append(SyncInfo(file, "Файл успешно скопирован"))
 
                 elif action == Action.DELETE_PC and pc.exists():
                     pc.unlink()
+                    state.mark_deleted(file.as_posix())
                     deleted.append(SyncInfo(file, "Файл успешно удален"))
 
                 elif action == Action.DELETE_FLASH and fl.exists():
                     fl.unlink()
+                    state.mark_deleted(file.as_posix())
                     deleted.append(SyncInfo(file, "Файл успешно удален"))
 
                 elif action == Action.CONFLICT:

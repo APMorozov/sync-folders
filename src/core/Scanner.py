@@ -18,32 +18,23 @@ class Scanner:
         return h.hexdigest()
 
     @staticmethod
-    def scan_folder(root: Path, ignore: list[str]) -> dict[Path, FileState]:
-        snapshot = {}
+    def scan_folder(path_to_folder: Path, ignore_files: list) -> set[Path]:
+        result = set()
+        root = Path(path_to_folder)
         root_parts = root.parts
 
-        for base, dirs, files in root.walk():
-            rel_dir = Path(*base.parts[len(root_parts):])
+        for directory, _, files in root.walk():
+            for file in files:
+                abs_path = Path(directory) / file
+                rel_parts = abs_path.parts[len(root_parts):]
 
-            if any(p in ignore for p in rel_dir.parts):
-                continue
-
-            for name in files:
-                full = base / name
-                rel = rel_dir / name
-
-                if any(p in ignore for p in rel.parts):
+                if any(p in ignore_files for p in rel_parts):
                     continue
 
-                try:
-                    snapshot[rel] = FileState(
-                        hash=Scanner.hash_file(full),
-                        mtime=full.stat().st_mtime
-                    )
-                except PermissionError:
-                    continue
+                rel_path = Path(*rel_parts)
+                result.add(rel_path)
 
-        return snapshot
+        return result
 
     @staticmethod
     def take_differences(pc_set_of_files: set, flash_set_of_files: set) -> tuple[set[Path], set[Path]]:

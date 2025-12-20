@@ -2,6 +2,7 @@ from src.core.Scanner import Scanner
 from src.core.Synchronizer import Synchronizer
 from src.core.StateManager import StateManager
 from src.core.SyncPlanner import SyncPlanner
+from src.utils.hash_compute import hash_file_sha1
 
 import json
 from pathlib import Path
@@ -21,17 +22,19 @@ class SyncManager:
         Создание класса
         :param config: JSON конфиг
         """
-        self.pc_folder = config["pc_folder"]
-        self.flash_folder = config["flash_folder"]
+        self.pc_folder = Path(config["pc_folder"])
+        self.flash_folder = Path(config["flash_folder"])
         self.ignore_files = config["ignore_files"]
         self.settings_dir = Path(".sync")
         self.Synchronizer = Synchronizer(self.pc_folder, self.flash_folder)
+        self.StateManager = StateManager(self.flash_folder)
 
     def update_config(self, config: json):
-        self.pc_folder = config["pc_folder"]
-        self.flash_folder = config["flash_folder"]
+        self.pc_folder = Path(config["pc_folder"])
+        self.flash_folder = Path(config["flash_folder"])
         self.ignore_files = config["ignore_files"]
         self.Synchronizer.update_config(Path(self.pc_folder), Path(self.flash_folder))
+        self.StateManager = StateManager(self.flash_folder)
 
     def _generate_code(self, length: int = 10) -> str:
         alphabet = string.ascii_letters + string.digits
@@ -94,32 +97,72 @@ class SyncManager:
                 f"Файл {dst} занят другим процессом"
             )
 
-    def sync(self):
-        pc_root = Path(self.pc_folder)
-        flash_root = Path(self.flash_folder)
-        ignore = self.ignore_files
+    def _is_updated(self, pc_path, flash_path) -> bool:
+        return hash_file_sha1(pc_path) != hash_file_sha1(flash_path)
 
-        state_pc = pc_root / ".sync/state.json"
-        state_flash = flash_root / ".sync/state.json"
+    def sync_by_attach(self):
+        # Сканируем папки
+        pc_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
+        flash_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
+        print("ON PC FILES: ", pc_files)
+        print("ON FLASH FILES: ", flash_files)
 
-        last = StateManager.load(state_pc)
+        no_on_pc, no_on_flash = Scanner.take_differences(pc_files, flash_files)
+        print("\n\nNO ON PC: ", no_on_pc)
+        print("NO ON FLASH: ", no_on_flash)
 
-        pc_now = Scanner.scan_folder(pc_root, ignore)
-        flash_now = Scanner.scan_folder(flash_root, ignore)
+        state_file = self.flash_folder / self.settings_dir / "state.json"
+        print("PATH TO STATE FILE: ", state_file)
+        if not state_file.exists():
+            self.StateManager.make_new_state(flash_files)
 
-        plan = SyncPlanner.build(pc_now, flash_now, last)
+        self.StateManager.supplement_files_to_state(flash_files)
+        self.StateManager.save_state()
 
-        synchronizer = Synchronizer(pc_root, flash_root)
-        errors, copied, updated = synchronizer.apply(plan)
+        plan = SyncPlanner.get_sync_plan_for_attach_action(pc_files, flash_files, self.StateManager, self.pc_folder)
 
-        new_snapshot = Scanner.scan_folder(pc_root, ignore)
+        print("PLAN: ", plan)
+        errors, copied_files, updated_files = self.Synchronizer.apply_plan(plan, self.StateManager)
+        flash_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
+        self.StateManager.supplement_files_to_state(flash_files)
+        self.StateManager.save_state()
 
-        StateManager.save(state_pc, new_snapshot)
-        StateManager.save(state_flash, new_snapshot)
+        pc_empty_dirs = Scanner.take_empty_dir(self.pc_folder)
+        flash_empty_dirs = Scanner.take_empty_dir(self.flash_folder)
+        self.Synchronizer.delete_empty_dir(pc_empty_dirs)
+        self.Synchronizer.delete_empty_dir(flash_empty_dirs)
 
-        return errors, copied, updated
+        return errors, copied_files, updated_files
 
+    def sync_by_btn(self):
+        print("SYNC BY BUTTON")
+        pc_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
+        flash_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
+        print("ON PC FILES: ", pc_files)
+        print("ON FLASH FILES: ", flash_files)
 
+        no_on_pc, no_on_flash = Scanner.take_differences(pc_files, flash_files)
+        print("\n\nNO ON PC: ", no_on_pc)
+        print("NO ON FLASH: ", no_on_flash)
 
+        state_file = self.flash_folder / self.settings_dir / "state.json"
+        print("PATH TO STATE FILE: ", state_file)
+        if not state_file.exists():
+            self.StateManager.make_new_state(flash_files)
 
+        self.StateManager.save_state()
 
+        plan = SyncPlanner.get_sync_plan_for_btn_action(pc_files, flash_files, self.StateManager, self.pc_folder)
+
+        print("PLAN: ", plan)
+        errors, copied_files, updated_files = self.Synchronizer.apply_plan(plan, self.StateManager)
+        flash_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
+        self.StateManager.supplement_files_to_state(flash_files)
+        self.StateManager.save_state()
+
+        pc_empty_dirs = Scanner.take_empty_dir(self.pc_folder)
+        flash_empty_dirs = Scanner.take_empty_dir(self.flash_folder)
+        self.Synchronizer.delete_empty_dir(pc_empty_dirs)
+        self.Synchronizer.delete_empty_dir(flash_empty_dirs)
+
+        return errors, copied_files, updated_files

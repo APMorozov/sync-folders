@@ -63,7 +63,7 @@ class SyncApp(QWidget):
         btn_settings.clicked.connect(self.open_settings)
 
         btn_sync = QPushButton("Синхронизировать")
-        btn_sync.clicked.connect(self.sync_action)
+        btn_sync.clicked.connect(self.sync_by_btn)
 
         btn_tray = QPushButton("Свернуть в трэй")
         btn_tray.clicked.connect(self.hide_to_tray)
@@ -144,14 +144,14 @@ class SyncApp(QWidget):
         config = read_json(self.path_to_config)
         self.set_data_from_config(config)
         self.Manager.update_config(config)
-        self.sync_action()
+        self.sync_by_attach()
 
     def update_flash_path(self, path_flash: Path):
         data = read_json(self.path_to_config)
         data["flash_folder"] = str(path_flash)
         write_json(self.path_to_config, data)
 
-    def sync_action(self):
+    def sync_by_attach(self):
         config = read_json(self.path_to_config)
 
         pc_folder = config.get("pc_folder", "")
@@ -186,7 +186,47 @@ class SyncApp(QWidget):
             )
             return
 
-        errors, copied_files, updated_files = self.Manager.sync()
+        errors, copied_files, updated_files = self.Manager.sync_by_attach()
+        dialog = SyncResultDialog(errors, copied_files, updated_files, parent=self)
+        dialog.exec()
+
+
+    def sync_by_btn(self):
+        config = read_json(self.path_to_config)
+
+        pc_folder = config.get("pc_folder", "")
+        flash_folder = config.get("flash_folder", "")
+
+        if not pc_folder:
+            QMessageBox.warning(
+                self,
+                "Ошибка синхронизации",
+                "Не выбран путь к папке на компьютере.\n\n"
+                "Откройте «Настройки» и укажите папку для синхронизации."
+            )
+            return
+
+        if not flash_folder:
+            QMessageBox.warning(
+                self,
+                "Ошибка синхронизации",
+                "Не выбран путь к флэшке.\n\n"
+                "Подключите флэшку или укажите путь в настройках."
+            )
+            return
+
+        flash_root = Path(flash_folder).parts[0]
+
+        if not self.Bus.is_valid_flash(flash_root):
+            QMessageBox.warning(
+                self,
+                "Ошибка синхронизации",
+                "Не обнаружена флэшка которая является валидной.\n\n"
+                "Убедитесь, что подключено ранее инициализированное устройство."
+            )
+            return
+
+        errors, copied_files, updated_files = self.Manager.sync_by_btn()
         dialog = SyncResultDialog(errors, copied_files, updated_files, parent=self)
         dialog.exec()
 
