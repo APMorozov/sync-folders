@@ -1,4 +1,5 @@
 from src.utils.hash_compute import hash_file_sha1
+from src.core.SyncPlanner import Action
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -56,6 +57,42 @@ class Synchronizer:
                 errors.add(SyncInfo(src, str(e)))
 
         return errors, copied_files
+
+    def apply(self, plan: dict):
+        errors = []
+        copied = []
+        deleted = []
+
+        for file, action in plan.items():
+            pc = self.pc_folder / file
+            fl = self.flash_folder / file
+
+            try:
+                if action == Action.COPY_TO_FLASH:
+                    fl.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(pc, fl)
+                    copied.append(SyncInfo(file, "Файл успешно скопирован"))
+
+                elif action == Action.COPY_TO_PC:
+                    pc.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(fl, pc)
+                    copied.append(SyncInfo(file, "Файл успешно скопирован"))
+
+                elif action == Action.DELETE_PC and pc.exists():
+                    pc.unlink()
+                    deleted.append(SyncInfo(file, "Файл успешно удален"))
+
+                elif action == Action.DELETE_FLASH and fl.exists():
+                    fl.unlink()
+                    deleted.append(SyncInfo(file, "Файл успешно удален"))
+
+                elif action == Action.CONFLICT:
+                    errors.append(SyncInfo(file, "Конфликтный файл"))
+
+            except Exception as e:
+                errors.append(SyncInfo(file, f"Ошибка: {str(e)}"))
+
+        return errors, copied, deleted
 
     def delete_files(self, files):
         """
