@@ -1,6 +1,5 @@
 from src.core.SyncPlanner import Action
 from src.core.StateManager import StateManager
-from src.utils.hash_compute import hash_file_sha1
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -50,7 +49,7 @@ class Synchronizer:
             os.rmdir(dir)
 
     @staticmethod
-    def copy_one_file(self, src: Path, dst: Path):
+    def copy_one_file(src: Path, dst: Path):
         """
         Копирует один файл безопасно:
         - создаёт папки
@@ -70,7 +69,14 @@ class Synchronizer:
                 except Exception:
                     pass
 
-    def apply_plan(self, plan: dict[Path, Action], state: StateManager):
+    def apply_plan(self, plan: dict[Path, Action],
+                   state: StateManager) -> tuple[list[SyncInfo], list[SyncInfo], list[SyncInfo]]:
+        """
+        Применяет план синхронизации
+        :param plan: план синхронизации
+        :param state: состояния файлов
+        :return: Ошибки, Скопированны\Обновленные, Удаленные
+        """
         errors = []
         copied = []
         deleted = []
@@ -108,8 +114,9 @@ class Synchronizer:
                 elif action == Action.UNKNOWN_FILE:
                     errors.append(SyncInfo(file, "Не известный файл"))
 
-            except PermissionError as e:
-                errors.append(SyncInfo(file, "Ошибка файл занят другой программой попробуйте закрыть ее и перезапустить синхронизацию."))
+            except PermissionError:
+                message = "Ошибка файл занят другой программой попробуйте закрыть ее и перезапустить синхронизацию."
+                errors.append(SyncInfo(file, message))
             except Exception as e:
                 errors.append(SyncInfo(file, f"Ошибка: {str(e)}"))
 

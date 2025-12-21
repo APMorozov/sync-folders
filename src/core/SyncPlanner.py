@@ -1,10 +1,12 @@
 from src.core.StateManager import StateManager
 from src.utils.hash_compute import hash_file_sha1
-from pathlib import Path
+
 from enum import Enum, auto
+from pathlib import Path
 
 
 class Action(Enum):
+    """Класс действий во время синхронизациии"""
     COPY_TO_PC = auto()
     COPY_TO_FLASH = auto()
     DELETE_PC = auto()
@@ -14,17 +16,27 @@ class Action(Enum):
 
 
 class SyncPlanner:
+    """Класс реализующий логику составления плана синхронизации"""
     @staticmethod
-    def get_sync_plan_for_btn_action(no_on_pc: set[Path], no_on_flash: set[Path], state: StateManager,
-                                        pc_folder: Path) -> dict[Path, Action]:
+    def get_sync_plan_for_btn_action(pc_files: set[Path],
+                                     flash_files: set[Path],
+                                     state: StateManager,
+                                     pc_folder: Path) -> dict[Path, Action]:
+        """
+        Составление плана при синхронизации путем нажатия кнопки
+        :param pc_files: Файлы на пк
+        :param flash_files: Файлы на флэшке
+        :param state: Класс состояний
+        :param pc_folder: путь до папки на пк
+        :return: План синхронизации
+        """
         plan = {}
-        all_files = set(no_on_pc) | set(no_on_flash)
+        all_files = set(pc_files) | set(flash_files)
         for f in all_files:
-            pc_f = f in no_on_pc
-            fl_f = f in no_on_flash
+            pc_f = f in pc_files
+            fl_f = f in flash_files
             is_delete, deleted_at = state.is_deleted(f.as_posix())
             state_files = state.state["files"].keys()
-            #удалить
             if fl_f and not pc_f:
                 if f.as_posix() not in state_files:
                     plan[f] = Action.UNKNOWN_FILE
@@ -61,12 +73,23 @@ class SyncPlanner:
         return plan
 
     @staticmethod
-    def get_sync_plan_for_attach_action(no_on_pc: set[Path], no_on_flash: set[Path], state: StateManager, pc_folder: Path) -> dict:
+    def get_sync_plan_for_attach_action(pc_files: set[Path],
+                                        flash_files: set[Path],
+                                        state: StateManager,
+                                        pc_folder: Path) -> dict[Path, Action]:
+        """
+        Составление плана при синхронизации путем подключения флэшки
+        :param pc_files: Файлы на пк
+        :param flash_files: Файлы на флэшке
+        :param state: Класс состояний
+        :param pc_folder: путь до папки на пк
+        :return: План синхронизации
+        """
         plan = {}
-        all_files = set(no_on_pc) | set(no_on_flash)
+        all_files = set(pc_files) | set(flash_files)
         for f in all_files:
-            pc_f = f in no_on_pc
-            fl_f = f in no_on_flash
+            pc_f = f in pc_files
+            fl_f = f in flash_files
             is_delete, deleted_at = state.is_deleted(f.as_posix())
 
             if not is_delete:

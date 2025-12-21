@@ -23,7 +23,7 @@ class Validator(QObject):
         """
         self.pc_folder = Path(pc_folder)
 
-    def usb_monitor(self) -> bool:
+    def usb_monitor(self) -> None:
         """
         Мониторинг, новых подключений
         :return: Найдена ли иницциализированная флэшка
