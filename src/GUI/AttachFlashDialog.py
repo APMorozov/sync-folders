@@ -6,6 +6,8 @@ from pathlib import Path
 
 
 class AttachFlashDialog(QDialog):
+    """Класс реализующий логику настройки подключения уже инициализированной флэшки"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Присоединить флэшку")
@@ -13,7 +15,7 @@ class AttachFlashDialog(QDialog):
 
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         layout = QVBoxLayout(self)
 
         layout.addWidget(QLabel("Папка на флэшке (с .sync)"))
@@ -66,17 +68,26 @@ class AttachFlashDialog(QDialog):
 
         layout.addLayout(bottom)
 
-    def choose_flash(self):
+    def choose_flash(self) -> None:
+        """
+        Выбор пути для флэшки
+        :return:
+        """
+
         folder = QFileDialog.getExistingDirectory(self, "Выберите папку на флэшке")
         if folder:
             self.flash_folder.setText(folder)
 
-    def choose_pc(self):
+    def choose_pc(self) -> None:
         folder = QFileDialog.getExistingDirectory(self, "Выберите папку на компьютере")
         if folder:
             self.pc_folder.setText(folder)
 
-    def add_ignore_folder(self):
+    def add_ignore_folder(self) -> None:
+        """
+        Добавление игнорируемых папок
+        :return:
+        """
         pc_root = self.pc_folder.text()
         if not pc_root:
             QMessageBox.warning(
@@ -122,7 +133,11 @@ class AttachFlashDialog(QDialog):
 
         self.ignore_list.addItem(rel_str)
 
-    def remove_ignore_folder(self):
+    def remove_ignore_folder(self) -> None:
+        """
+        Удаление игнорируемых файлов
+        :return:
+        """
         for item in self.ignore_list.selectedItems():
             if item.text() == ".sync":
                 QMessageBox.warning(
@@ -134,8 +149,11 @@ class AttachFlashDialog(QDialog):
 
             self.ignore_list.takeItem(self.ignore_list.row(item))
 
-
-    def validate_and_accept(self):
+    def validate_and_accept(self) -> None:
+        """
+        Валадация введенных данных
+        :return:
+        """
         flash = Path(self.flash_folder.text())
         pc = Path(self.pc_folder.text())
 
@@ -171,6 +189,11 @@ class AttachFlashDialog(QDialog):
         self.accept()
 
     def get_result(self) -> dict:
+        """
+        Изменненые данные конфига
+        :return:
+        """
+
         ignore_files = [
             self.ignore_list.item(i).text()
             for i in range(self.ignore_list.count())

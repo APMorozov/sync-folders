@@ -1,15 +1,13 @@
 from src.core.Synchronizer import SyncInfo
 
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+    QDialog, QVBoxLayout, QPushButton,
     QListWidget, QTabWidget, QListWidgetItem, QWidget, QMessageBox
 )
 from PySide6.QtCore import Qt, Signal
-from pathlib import Path
 
 
 class SyncResultDialog(QDialog):
-    # 🔥 сигнал: (SyncInfo, action: str)
     resolveRequested = Signal(object, str)
 
     def __init__(self, errors: list[SyncInfo], copied_files: list[SyncInfo], deleted_files: list[SyncInfo], parent=None):
@@ -39,8 +37,11 @@ class SyncResultDialog(QDialog):
         btn_close.clicked.connect(self.accept)
         layout.addWidget(btn_close)
 
-    # ---------- Ошибки ----------
-    def create_errors_tab(self):
+    def create_errors_tab(self) -> tuple[QWidget,QListWidget]:
+        """
+        Создание таблицы ошибок
+        :return:
+        """
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
@@ -60,7 +61,12 @@ class SyncResultDialog(QDialog):
         return widget, list_widget
 
     # ---------- Универсальная вкладка ----------
-    def create_list_tab(self, items):
+    def create_list_tab(self, items: list) -> QWidget:
+        """
+        Создание таблицы скопированных\обновленных или удаленных файлов
+        :param items:
+        :return:
+        """
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
@@ -71,8 +77,12 @@ class SyncResultDialog(QDialog):
         layout.addWidget(list_widget)
         return widget
 
-    # ---------- Логика решения ----------
-    def resolve_selected_error(self, list_widget: QListWidget):
+    def resolve_selected_error(self, list_widget: QListWidget) -> None:
+        """
+        Запрашивает у пользователя решение ошибок
+        :param list_widget:
+        :return:
+        """
         item = list_widget.currentItem()
         if not item:
             QMessageBox.warning(self, "Ошибка", "Выберите строку")
@@ -81,7 +91,6 @@ class SyncResultDialog(QDialog):
         info = item.data(Qt.UserRole)
         reason = info.reason.lower()
 
-        # ⚠️ конфликт
         if "конфликт" in reason:
             res = QMessageBox.question(
                 self,
@@ -96,7 +105,6 @@ class SyncResultDialog(QDialog):
 
             action = "use_pc" if res == QMessageBox.Yes else "use_flash"
 
-        # ❓ неизвестный файл
         elif "не извест" in reason:
             res = QMessageBox.question(
                 self,
@@ -106,12 +114,10 @@ class SyncResultDialog(QDialog):
             )
             action = "sync" if res == QMessageBox.Yes else "keep"
 
-        # ❌ другое
         else:
             QMessageBox.information(self, "Информация", "Для этой ошибки нет сценария")
             return
 
-        # 🚀 сигнал
         self.resolveRequested.emit(info, action)
 
         row = list_widget.row(item)

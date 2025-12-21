@@ -1,21 +1,19 @@
 from src.GUI.AttachFlashDialog import AttachFlashDialog
 from src.GUI.SettingsDialog import SettingsDialog
+from src.core.SyncManager import SyncManager
+from src.core.Synchronizer import SyncInfo
 from src.GUI.SyncResultDialog import SyncResultDialog
 from src.core.Validator import Validator
+from src.utils.file_work import write_json, read_json
 
 
 from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton, QListWidget, QVBoxLayout,
-    QHBoxLayout, QFileDialog, QLineEdit, QSystemTrayIcon, QMenu,
+    QHBoxLayout, QLineEdit, QSystemTrayIcon, QMenu,
     QMessageBox
 )
-from PySide6.QtGui import QPalette, QColor, QIcon
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from pathlib import Path
-import time
-
-from src.core.SyncManager import SyncManager
-from src.utils.file_work import write_json, read_json
 
 
 class SyncApp(QWidget):
@@ -84,16 +82,23 @@ class SyncApp(QWidget):
 
         main_layout.addLayout(bottom_buttons)
 
-
-
-    def set_data_from_config(self, data: dict):
+    def set_data_from_config(self, data: dict) -> None:
+        """
+        Установка данных из конфига в GUI
+        :param data: данные
+        :return:
+        """
         self.pc_folder.setText(data.get("pc_folder", ""))
         self.flash_folder.setText(data.get("flash_folder", ""))
         self.ignore_list.clear()
         for folder in data.get("ignore_files", []):
             self.ignore_list.addItem(folder)
 
-    def open_settings(self):
+    def open_settings(self) -> None:
+        """
+        Открытие настроек.После закрытия данные обновляются
+        :return:
+        """
         dialog = SettingsDialog(read_json(self.path_to_config), self)
 
         if dialog.exec():
@@ -107,7 +112,12 @@ class SyncApp(QWidget):
             self.Validator.update_pc_folder(new_config["pc_folder"])
             self.sync_by_attach()
 
-    def attach_flash(self):
+    def attach_flash(self) -> None:
+        """
+        Подключение уже инициализированной флэшки.Автоматически обновляются данные в конфиге и классах
+        :return:
+        """
+
         dialog = AttachFlashDialog(self)
 
         if not dialog.exec():
@@ -137,8 +147,12 @@ class SyncApp(QWidget):
 
         self.sync_by_attach()
 
-
-    def flash_find(self, path_flash: Path):
+    def flash_find(self, path_flash: Path) -> None:
+        """
+        Обновляет данные при обнаружении инициализированной флэшки
+        :param path_flash: путь к флэшке
+        :return:
+        """
         QMessageBox.information(self, "USB", "Обнаружено инициализированное устройство.")
         self.update_flash_path(path_flash)
         config = read_json(self.path_to_config)
@@ -147,11 +161,20 @@ class SyncApp(QWidget):
         self.sync_by_attach()
 
     def update_flash_path(self, path_flash: Path):
+        """
+        Обнапляет путь до флэшки в конфиге
+        :param path_flash: путь до флэшки
+        :return:
+        """
         data = read_json(self.path_to_config)
         data["flash_folder"] = str(path_flash)
         write_json(self.path_to_config, data)
 
-    def sync_by_attach(self):
+    def sync_by_attach(self) -> None:
+        """
+        Синхронизация при присоединении флэшки и обновлении данных настроек
+        :return:
+        """
         config = read_json(self.path_to_config)
 
         pc_folder = config.get("pc_folder", "")
@@ -193,7 +216,13 @@ class SyncApp(QWidget):
         )
         dialog.exec()
 
-    def resolve_sync_error(self, sync_info, action):
+    def resolve_sync_error(self, sync_info: SyncInfo, action: str) -> None:
+        """
+        Разрешение ошибок возникающих при синхронизации
+        :param sync_info:
+        :param action:
+        :return:
+        """
         file = sync_info.file
         if action == "use_pc":
             self.Manager.copy_one_file(self.Manager.pc_folder / file, self.Manager.flash_folder / file)
@@ -205,6 +234,10 @@ class SyncApp(QWidget):
             pass
 
     def sync_by_btn(self):
+        """
+        Синхронизация при нажатии кнопки
+        :return:
+        """
         config = read_json(self.path_to_config)
 
         pc_folder = config.get("pc_folder", "")
@@ -246,17 +279,27 @@ class SyncApp(QWidget):
         )
         dialog.exec()
 
-
-
     def hide_to_tray(self):
+        """
+        Скрыть в Trey
+        :return:
+        """
         self.tray.show()
         self.hide()
 
     def show_window(self):
+        """
+        Показать из Trey
+        :return:
+        """
         self.show()
         self.raise_()
 
     def exit_app(self):
+        """
+        Закрытие ПО из Trey
+        :return:
+        """
         self.tray.hide()
         QApplication.quit()
 

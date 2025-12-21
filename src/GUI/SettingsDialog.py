@@ -15,7 +15,6 @@ class SettingsDialog(QDialog):
         self.init_ui()
         self.set_data_from_config(self._config)
 
-
     def init_ui(self):
         layout = QVBoxLayout(self)
 
@@ -69,8 +68,12 @@ class SettingsDialog(QDialog):
 
         layout.addLayout(bottom)
 
-
-    def set_data_from_config(self, data: dict):
+    def set_data_from_config(self, data: dict) -> None:
+        """
+        Установка информации из конфига
+        :param data: инфомация
+        :return:
+        """
         self.pc_folder.setText(data.get("pc_folder", ""))
 
         flash = data.get("flash_folder", "")
@@ -82,19 +85,30 @@ class SettingsDialog(QDialog):
             self.ignore_list.addItem(folder)
 
     def get_config(self) -> dict:
+        """
+        Создание обновленного конфига из полей класса
+        :return: Новый конфиг
+        """
         return {
             "pc_folder": self.pc_folder.text(),
             "flash_folder": self.flash_folder.text(),
             "ignore_files": self.transform_path_ignore_folders()
         }
 
-
-    def on_apply(self):
+    def on_apply(self) -> None:
+        """
+        Логика кнопки принять
+        :return:
+        """
         if not self.validate():
             return
         self.accept()
 
     def validate(self) -> bool:
+        """
+        Валидация информации введенной пользователем
+        :return: Подходит или нет
+        """
         if not self.pc_folder.text().strip():
             self.error("Не выбран путь к папке на компьютере")
             return False
@@ -112,33 +126,53 @@ class SettingsDialog(QDialog):
 
         return True
 
-    def error(self, text: str):
+    def error(self, text: str) -> None:
+        """
+        Ошибка
+        :param text:
+        :return:
+        """
         QMessageBox.warning(self, "Ошибка", text)
-
 
     @staticmethod
     def extract_root(path: str) -> str:
-        """E:\\storage -> E:\\"""
+        """
+        Извелечение чистого корня флэшки
+        :param path:
+        :return:
+        """
         p = Path(path)
         return p.anchor or p.parts[0]
 
     @staticmethod
     def is_root_path(path: str) -> bool:
+        """Проверка корень файловой системы или нет"""
         p = Path(path)
         return p.parent == p
 
-
-    def choose_pc_folder(self):
+    def choose_pc_folder(self) -> None:
+        """
+        Выбор папки на пк
+        :return:
+        """
         folder = QFileDialog.getExistingDirectory(self, "Выбор исходной папки")
         if folder:
             self.pc_folder.setText(folder)
 
-    def choose_flash_folder(self):
+    def choose_flash_folder(self) -> None:
+        """
+        Выбор папки на флэшке
+        :return:
+        """
         folder = QFileDialog.getExistingDirectory(self, "Выбор корня флэшки")
         if folder:
             self.flash_folder.setText(self.extract_root(folder))
 
-    def add_ignore_folder(self):
+    def add_ignore_folder(self) -> None:
+        """
+        Добавление игнор папок
+        :return:
+        """
         if not self.pc_folder.text():
             self.error("Сначала выберите папку для синхронизации на компьютере")
             return
@@ -177,7 +211,11 @@ class SettingsDialog(QDialog):
 
         self.ignore_list.addItem(relative_str)
 
-    def remove_ignore_folder(self):
+    def remove_ignore_folder(self) -> None:
+        """
+        Удаление игнор папок
+        :return:
+        """
         for item in self.ignore_list.selectedItems():
             if Path(item.text()).name == ".sync":
                 self.error("Папку .sync нельзя удалить из игнорируемых")
@@ -185,6 +223,11 @@ class SettingsDialog(QDialog):
             self.ignore_list.takeItem(self.ignore_list.row(item))
 
     def transform_path_ignore_folders(self) -> list[str]:
+        """
+        Обработка игнор папок
+        :return: переработаные игнор папки
+        """
+
         return [
             self.ignore_list.item(i).text()
             for i in range(self.ignore_list.count())
