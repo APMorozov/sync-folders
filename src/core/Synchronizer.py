@@ -155,7 +155,7 @@ class Synchronizer:
             path_to_pc_file = self.pc_folder / file
             path_to_flash_file = self.flash_folder / file
             try:
-                if hash_file_sha1(path_to_pc_file.__str__()) != hash_file_sha1(path_to_flash_file.__str__()):
+                if hash_file_sha1(path_to_pc_file.as_posix()) != hash_file_sha1(path_to_flash_file.as_posix()):
                     files_to_update.add(file)
             except PermissionError:
                 errors_hash.add(

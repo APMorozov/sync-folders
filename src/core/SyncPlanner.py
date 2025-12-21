@@ -22,11 +22,11 @@ class SyncPlanner:
         for f in all_files:
             pc_f = f in no_on_pc
             fl_f = f in no_on_flash
-            is_delete, deleted_at = state.is_deleted(f.__str__())
+            is_delete, deleted_at = state.is_deleted(f.as_posix())
             state_files = state.state["files"].keys()
             #удалить
             if fl_f and not pc_f:
-                if f.__str__() not in state_files:
+                if f.as_posix() not in state_files:
                     plan[f] = Action.UNKNOWN_FILE
                 else:
                     plan[f] = Action.DELETE_FLASH
@@ -67,7 +67,7 @@ class SyncPlanner:
         for f in all_files:
             pc_f = f in no_on_pc
             fl_f = f in no_on_flash
-            is_delete, deleted_at = state.is_deleted(f.__str__())
+            is_delete, deleted_at = state.is_deleted(f.as_posix())
 
             if not is_delete:
                 if pc_f and not fl_f:

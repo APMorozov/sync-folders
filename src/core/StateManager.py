@@ -22,12 +22,12 @@ class StateManager:
 
     def make_new_state(self, flash_files: set[Path]):
         for file in flash_files:
-            self.add_one_file_to_state(file.__str__())
+            self.add_one_file_to_state(file.as_posix())
 
     def supplement_files_to_state(self, flash_files: set[Path]):
         for file in flash_files:
             files_in_sates = self.state["files"].keys()
-            str_file = file.__str__()
+            str_file = file.as_posix()
             if str_file not in files_in_sates:
                 self.add_one_file_to_state(str_file)
 

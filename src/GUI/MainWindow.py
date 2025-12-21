@@ -101,7 +101,7 @@ class SyncApp(QWidget):
         if dialog.exec():
             new_config = dialog.get_config()
             pc_sync_dir = Path(new_config["pc_folder"])
-            new_config["flash_folder"] = (Path(new_config["flash_folder"]) / pc_sync_dir.parts[-1]).__str__()
+            new_config["flash_folder"] = (Path(new_config["flash_folder"]) / pc_sync_dir.parts[-1]).as_posix()
             write_json(self.path_to_config, new_config)
             self.set_data_from_config(new_config)
             self.Manager.update_config(read_json(self.path_to_config))
