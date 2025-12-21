@@ -1,3 +1,5 @@
+from src.core.Synchronizer import SyncInfo
+
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QListWidget, QTabWidget, QListWidgetItem, QWidget, QMessageBox
@@ -10,14 +12,14 @@ class SyncResultDialog(QDialog):
     # 🔥 сигнал: (SyncInfo, action: str)
     resolveRequested = Signal(object, str)
 
-    def __init__(self, errors: list, copied_files: list, updated_files: list, parent=None):
+    def __init__(self, errors: list[SyncInfo], copied_files: list[SyncInfo], deleted_files: list[SyncInfo], parent=None):
         super().__init__(parent)
         self.setWindowTitle("Результаты синхронизации")
         self.resize(600, 400)
 
         self.errors = errors
         self.copied_files = copied_files
-        self.updated_files = updated_files
+        self.deleted_files = deleted_files
 
         self.init_ui()
 
@@ -28,8 +30,8 @@ class SyncResultDialog(QDialog):
 
         self.errors_tab, self.errors_list = self.create_errors_tab()
         self.tabs.addTab(self.errors_tab, "Ошибки")
-        self.tabs.addTab(self.create_list_tab(self.copied_files), "Скопированные")
-        self.tabs.addTab(self.create_list_tab(self.updated_files), "Обновлённые")
+        self.tabs.addTab(self.create_list_tab(self.copied_files), "Скопированные/Обновленные")
+        self.tabs.addTab(self.create_list_tab(self.deleted_files), "Удаленные")
 
         layout.addWidget(self.tabs)
 
@@ -64,7 +66,7 @@ class SyncResultDialog(QDialog):
 
         list_widget = QListWidget()
         for item in items:
-            list_widget.addItem(QListWidgetItem(str(item)))
+            list_widget.addItem(QListWidgetItem(f"{item.file} — {item.reason}"))
 
         layout.addWidget(list_widget)
         return widget
@@ -92,17 +94,17 @@ class SyncResultDialog(QDialog):
             if res == QMessageBox.Cancel:
                 return
 
-            action = "conflict" if res == QMessageBox.Yes else "use_flash"
+            action = "use_pc" if res == QMessageBox.Yes else "use_flash"
 
         # ❓ неизвестный файл
         elif "не извест" in reason:
             res = QMessageBox.question(
                 self,
                 "Неизвестный файл на флэшке",
-                f"{info.file}\n\nСинхронизировать?",
+                f"{info.file}\n\nСинхронизировать?No - файл будет уделаен.",
                 QMessageBox.Yes | QMessageBox.No
             )
-            action = "unknown" if res == QMessageBox.Yes else "keep"
+            action = "sync" if res == QMessageBox.Yes else "keep"
 
         # ❌ другое
         else:

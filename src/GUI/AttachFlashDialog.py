@@ -147,7 +147,7 @@ class AttachFlashDialog(QDialog):
             QMessageBox.warning(
                 self,
                 "Ошибка",
-                "В выбранной папке нет каталога .sync.\n\n"
+                "В выбранной папке на флэшке нет каталога .sync.\n\n"
                 "Это устройство не инициализировано."
             )
             return
@@ -156,13 +156,16 @@ class AttachFlashDialog(QDialog):
             QMessageBox.warning(
                 self,
                 "Ошибка",
-                "В выбранной папке нет файла code в каталоге .sync\n\n"
+                "В выбранной папке на флжшке нет файла code в каталоге .sync\n\n"
                 "Это устройство не инициализировано."
             )
             return
 
         if not pc.exists():
             QMessageBox.warning(self, "Ошибка", "Путь к папке на ПК не выбран.")
+            return
+        if pc.name != flash.name:
+            QMessageBox.warning(self, "Ошибка", "Названия папок на флэшке и пк отличаются.")
             return
 
         self.accept()

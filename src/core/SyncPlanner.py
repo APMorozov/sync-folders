@@ -27,8 +27,7 @@ class SyncPlanner:
             #удалить
             if fl_f and not pc_f:
                 if f.__str__() not in state_files:
-                    abs_path = state.flash_folder / f
-                    plan[abs_path.as_posix()] = Action.UNKNOWN_FILE
+                    plan[f] = Action.UNKNOWN_FILE
                 else:
                     plan[f] = Action.DELETE_FLASH
             if not fl_f and pc_f:
@@ -107,9 +106,12 @@ class SyncPlanner:
 
                 if pc_changed and fl_changed:
                     plan[f] = Action.CONFLICT
-                elif pc_changed:
+
+                pc_time_changed = pc_abs_path.stat().st_mtime
+                flash_time_changed = flash_abs_path.stat().st_mtime
+                if pc_time_changed > flash_time_changed:
                     plan[f] = Action.COPY_TO_FLASH
-                elif fl_changed:
+                else:
                     plan[f] = Action.COPY_TO_PC
 
         return plan

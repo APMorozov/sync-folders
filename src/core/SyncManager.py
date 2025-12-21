@@ -166,3 +166,6 @@ class SyncManager:
         self.Synchronizer.delete_empty_dir(flash_empty_dirs)
 
         return errors, copied_files, updated_files
+
+    def copy_one_file(self, from_copy: Path, to_copy: Path):
+        self.Synchronizer.copy_one_file(from_copy, to_copy)

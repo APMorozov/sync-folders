@@ -107,6 +107,7 @@ class SyncApp(QWidget):
             self.Manager.update_config(read_json(self.path_to_config))
             self.Manager.initialize_flash()
             self.Bus.update_pc_folder(new_config["pc_folder"])
+            self.sync_by_attach()
 
     def attach_flash(self):
         dialog = AttachFlashDialog(self)
@@ -133,8 +134,10 @@ class SyncApp(QWidget):
         QMessageBox.information(
             self,
             "Устройство присоединено",
-            "Флэшка успешно присоединена и готова к синхронизации."
+            "Флэшка успешно присоединена,ностели синхронизированы."
         )
+
+        self.sync_by_attach()
 
 
     def flash_find(self, path_flash: Path):
@@ -193,9 +196,15 @@ class SyncApp(QWidget):
         dialog.exec()
 
     def resolve_sync_error(self, sync_info, action):
-        rel_path = sync_info.file
-        print("YOU")
-
+        file = sync_info.file
+        if action == "use_pc":
+            self.Manager.copy_one_file(self.Manager.pc_folder / file, self.Manager.flash_folder / file)
+        if action == "use_flash":
+            self.Manager.copy_one_file(self.Manager.flash_folder / file, self.Manager.pc_folder / file)
+        if action == "sync":
+            self.Manager.copy_one_file(self.Manager.flash_folder / file, self.Manager.pc_folder / file)
+        if action == "keep":
+            pass
 
     def sync_by_btn(self):
         config = read_json(self.path_to_config)
