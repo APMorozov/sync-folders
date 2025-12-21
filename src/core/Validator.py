@@ -5,7 +5,7 @@ import psutil
 from PySide6.QtCore import Signal, QObject
 import time
 
-"""Класс реализующий логику мониторинга подключенных устройств и сигнализацию о новых подключениях"""
+"""Класс реализующий логику мониторинга подключенных устройств и валидации"""
 
 
 class Validator(QObject):
@@ -16,9 +16,18 @@ class Validator(QObject):
         self.pc_folder = Path(pc_folder)
 
     def update_pc_folder(self, pc_folder: str):
+        """
+        Обновление пути к папке на пк
+        :param pc_folder: путь к папке на пк
+        :return:
+        """
         self.pc_folder = Path(pc_folder)
 
-    def usb_monitor(self):
+    def usb_monitor(self) -> bool:
+        """
+        Мониторинг, новых подключений
+        :return: Найдена ли иницциализированная флэшка
+        """
         known = set()
 
         while True:
@@ -37,6 +46,11 @@ class Validator(QObject):
             time.sleep(1)
 
     def is_valid_flash(self, drive: str) -> bool:
+        """
+        Валидация флэшки
+        :param drive: корень флэшки
+        :return: Инициализированная ли флэшка
+        """
         drive = Path(drive)
         pc_folder_name = self.pc_folder.name
         print("Drive: ", drive)
@@ -52,6 +66,11 @@ class Validator(QObject):
 
     @staticmethod
     def load_or_create_config(path: str) -> None:
+        """
+        Валидация конфига настроек
+        :param path: путь до конфига
+        :return:
+        """
         default_config = {
             "pc_folder": "",
             "flash_folder": "",

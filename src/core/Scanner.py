@@ -1,5 +1,3 @@
-from src.core.FileState import FileState
-
 from pathlib import Path
 import hashlib
 
