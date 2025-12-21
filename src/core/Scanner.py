@@ -1,5 +1,4 @@
 from pathlib import Path
-import hashlib
 
 
 class Scanner:
@@ -8,15 +7,13 @@ class Scanner:
     """
 
     @staticmethod
-    def hash_file(path: Path) -> str:
-        h = hashlib.sha1()
-        with path.open("rb") as f:
-            for chunk in iter(lambda: f.read(1024 * 1024), b""):
-                h.update(chunk)
-        return h.hexdigest()
-
-    @staticmethod
     def scan_folder(path_to_folder: Path, ignore_files: list) -> set[Path]:
+        """
+        Рекурсивное сканирование с учетом игнорируемых файлов
+        :param path_to_folder: путь к папке для сканирования
+        :param ignore_files: игнорируемые файлы\папки
+        :return: все файлы на папке
+        """
         result = set()
         root = Path(path_to_folder)
         root_parts = root.parts
