@@ -3,7 +3,7 @@ from src.utils.hash_compute import hash_file_sha1
 import json
 import time
 from pathlib import Path
-import hashlib
+
 
 
 class StateManager:

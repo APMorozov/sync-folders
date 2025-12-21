@@ -11,6 +11,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = SyncApp(config.as_posix())
     window.show()
-    t = threading.Thread(target=window.Bus.usb_monitor, daemon=True)
+    t = threading.Thread(target=window.Validator.usb_monitor, daemon=True)
     t.start()
     sys.exit(app.exec())

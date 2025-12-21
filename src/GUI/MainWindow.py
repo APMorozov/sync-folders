@@ -1,7 +1,7 @@
 from src.GUI.AttachFlashDialog import AttachFlashDialog
 from src.GUI.SettingsDialog import SettingsDialog
 from src.GUI.SyncResultDialog import SyncResultDialog
-from src.core.EventBus import EventBus
+from src.core.Validator import Validator
 
 
 from PySide6.QtWidgets import (
@@ -23,11 +23,9 @@ class SyncApp(QWidget):
         super().__init__()
         self.path_to_config = path_to_config
 
-        EventBus.load_or_create_config(self.path_to_config)
-        self.Bus = EventBus(read_json(path_to_config)["pc_folder"])
-        self.Bus.usb_detected.connect(self.flash_find)
-
-
+        Validator.load_or_create_config(self.path_to_config)
+        self.Validator = Validator(read_json(path_to_config)["pc_folder"])
+        self.Validator.usb_detected.connect(self.flash_find)
         self.Manager = SyncManager(read_json(self.path_to_config))
 
         self.init_ui()
@@ -106,7 +104,7 @@ class SyncApp(QWidget):
             self.set_data_from_config(new_config)
             self.Manager.update_config(read_json(self.path_to_config))
             self.Manager.initialize_flash()
-            self.Bus.update_pc_folder(new_config["pc_folder"])
+            self.Validator.update_pc_folder(new_config["pc_folder"])
             self.sync_by_attach()
 
     def attach_flash(self):
@@ -127,7 +125,7 @@ class SyncApp(QWidget):
         # обновляем всё
         self.set_data_from_config(new_config)
         self.Manager.update_config(new_config)
-        self.Bus.update_pc_folder(new_config["pc_folder"])
+        self.Validator.update_pc_folder(new_config["pc_folder"])
 
         self.Manager.copy_code_from_flash()
 
@@ -179,7 +177,7 @@ class SyncApp(QWidget):
 
         flash_root = Path(flash_folder).parts[0]
 
-        if not self.Bus.is_valid_flash(flash_root):
+        if not self.Validator.is_valid_flash(flash_root):
             QMessageBox.warning(
                 self,
                 "Ошибка синхронизации",
@@ -232,7 +230,7 @@ class SyncApp(QWidget):
 
         flash_root = Path(flash_folder).parts[0]
 
-        if not self.Bus.is_valid_flash(flash_root):
+        if not self.Validator.is_valid_flash(flash_root):
             QMessageBox.warning(
                 self,
                 "Ошибка синхронизации",

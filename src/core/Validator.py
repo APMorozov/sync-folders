@@ -8,7 +8,7 @@ import time
 """Класс реализующий логику мониторинга подключенных устройств и сигнализацию о новых подключениях"""
 
 
-class EventBus(QObject):
+class Validator(QObject):
     usb_detected = Signal(Path)
 
     def __init__(self, pc_folder: str):
