@@ -129,12 +129,12 @@ class SyncPlanner:
 
                 if pc_changed and fl_changed:
                     plan[f] = Action.CONFLICT
-
-                pc_time_changed = pc_abs_path.stat().st_mtime
-                flash_time_changed = flash_abs_path.stat().st_mtime
-                if pc_time_changed > flash_time_changed:
-                    plan[f] = Action.COPY_TO_FLASH
                 else:
-                    plan[f] = Action.COPY_TO_PC
+                    pc_time_changed = pc_abs_path.stat().st_mtime
+                    flash_time_changed = flash_abs_path.stat().st_mtime
+                    if pc_time_changed > flash_time_changed:
+                        plan[f] = Action.COPY_TO_FLASH
+                    else:
+                        plan[f] = Action.COPY_TO_PC
 
         return plan

@@ -124,15 +124,8 @@ class SyncManager:
         # Сканируем папки
         pc_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
         flash_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
-        print("ON PC FILES: ", pc_files)
-        print("ON FLASH FILES: ", flash_files)
-
-        no_on_pc, no_on_flash = Scanner.take_differences(pc_files, flash_files)
-        print("\n\nNO ON PC: ", no_on_pc)
-        print("NO ON FLASH: ", no_on_flash)
 
         state_file = self.flash_folder / self.settings_dir / "state.json"
-        print("PATH TO STATE FILE: ", state_file)
         if not state_file.exists():
             self.StateManager.make_new_state(flash_files)
 
@@ -141,7 +134,6 @@ class SyncManager:
 
         plan = SyncPlanner.get_sync_plan_for_attach_action(pc_files, flash_files, self.StateManager, self.pc_folder)
 
-        print("PLAN: ", plan)
         errors, copied_files, updated_files = self.Synchronizer.apply_plan(plan, self.StateManager)
         flash_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
         self.StateManager.supplement_files_to_state(flash_files)
@@ -159,18 +151,10 @@ class SyncManager:
         Синхронизация при нажатии кнопки
         :return: Ошибки, Скопированны\Обновленные, Удаленные
         """
-        print("SYNC BY BUTTON")
         pc_files = Scanner.scan_folder(self.pc_folder, self.ignore_files)
         flash_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
-        print("ON PC FILES: ", pc_files)
-        print("ON FLASH FILES: ", flash_files)
-
-        no_on_pc, no_on_flash = Scanner.take_differences(pc_files, flash_files)
-        print("\n\nNO ON PC: ", no_on_pc)
-        print("NO ON FLASH: ", no_on_flash)
 
         state_file = self.flash_folder / self.settings_dir / "state.json"
-        print("PATH TO STATE FILE: ", state_file)
         if not state_file.exists():
             self.StateManager.make_new_state(flash_files)
 
@@ -178,7 +162,6 @@ class SyncManager:
 
         plan = SyncPlanner.get_sync_plan_for_btn_action(pc_files, flash_files, self.StateManager, self.pc_folder)
 
-        print("PLAN: ", plan)
         errors, copied_files, updated_files = self.Synchronizer.apply_plan(plan, self.StateManager)
         flash_files = Scanner.scan_folder(self.flash_folder, self.ignore_files)
         self.StateManager.supplement_files_to_state(flash_files)

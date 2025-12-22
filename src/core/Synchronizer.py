@@ -90,23 +90,23 @@ class Synchronizer:
                     fl.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(pc, fl)
                     state.update_file(file.as_posix(), fl)
-                    copied.append(SyncInfo(file, "Файл успешно скопирован"))
+                    copied.append(SyncInfo(file, "Файл успешно скопирован с ПК на флэшку"))
 
                 elif action == Action.COPY_TO_PC:
                     pc.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(fl, pc)
                     state.update_file(file.as_posix(), pc)
-                    copied.append(SyncInfo(file, "Файл успешно скопирован"))
+                    copied.append(SyncInfo(file, "Файл успешно скопирован с флэшки на ПК"))
 
                 elif action == Action.DELETE_PC and pc.exists():
                     pc.unlink()
                     state.mark_deleted(file.as_posix())
-                    deleted.append(SyncInfo(file, "Файл успешно удален"))
+                    deleted.append(SyncInfo(file, "Файл успешно удален с ПК"))
 
                 elif action == Action.DELETE_FLASH and fl.exists():
                     fl.unlink()
                     state.mark_deleted(file.as_posix())
-                    deleted.append(SyncInfo(file, "Файл успешно удален"))
+                    deleted.append(SyncInfo(file, "Файл успешно удален с флэшки"))
 
                 elif action == Action.CONFLICT:
                     errors.append(SyncInfo(file, "Конфликтный файл"))

@@ -53,7 +53,6 @@ class Validator(QObject):
         """
         drive = Path(drive)
         pc_folder_name = self.pc_folder.name
-        print("Drive: ", drive)
         valid = (((drive / pc_folder_name).is_dir()
                  and (drive / pc_folder_name / ".sync").is_dir())
                  and (drive / pc_folder_name / ".sync" / "code").is_file())
