@@ -92,18 +92,26 @@ class SyncResultDialog(QDialog):
         reason = info.reason.lower()
 
         if "конфликт" in reason:
-            res = QMessageBox.question(
-                self,
-                "Конфликт",
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Конфликт")
+            msg.setText(
                 f"{info.file}\n\n"
-                "Да — оставить версию ПК\n"
-                "Нет — оставить версию флэшки",
-                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
+                "Выберите версию файла, которую необходимо оставить:"
             )
-            if res == QMessageBox.Cancel:
-                return
 
-            action = "use_pc" if res == QMessageBox.Yes else "use_flash"
+            btn_pc = msg.addButton("На ПК", QMessageBox.AcceptRole)
+            btn_flash = msg.addButton("На Флэшки", QMessageBox.AcceptRole)
+            msg.addButton("Отмена", QMessageBox.RejectRole)
+
+            msg.exec()
+
+            clicked = msg.clickedButton()
+            if clicked == btn_pc:
+                action = "use_pc"
+            elif clicked == btn_flash:
+                action = "use_flash"
+            else:
+                return
 
         elif "не извест" in reason:
             res = QMessageBox.question(

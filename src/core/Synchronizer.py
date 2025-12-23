@@ -87,14 +87,12 @@ class Synchronizer:
 
             try:
                 if action == Action.COPY_TO_FLASH:
-                    fl.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(pc, fl)
+                    self.copy_one_file(pc, fl)
                     state.update_file(file.as_posix(), fl)
                     copied.append(SyncInfo(file, "Файл успешно скопирован с ПК на флэшку"))
 
                 elif action == Action.COPY_TO_PC:
-                    pc.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(fl, pc)
+                    self.copy_one_file(fl, pc)
                     state.update_file(file.as_posix(), pc)
                     copied.append(SyncInfo(file, "Файл успешно скопирован с флэшки на ПК"))
 

@@ -58,12 +58,10 @@ class SyncPlanner:
                 flash_abs_path = state.flash_folder / f
                 if hash_file_sha1(pc_abs_path.as_posix()) == hash_file_sha1(flash_abs_path.as_posix()):
                     continue
-
                 pc_abs_path = pc_folder / f
                 flash_abs_path = state.flash_folder / f
                 pc_changed = hash_file_sha1(pc_abs_path.as_posix()) != state.state["files"].get(f.as_posix(), {})["hash"]
                 fl_changed = hash_file_sha1(flash_abs_path.as_posix()) != state.state["files"].get(f.as_posix(), {})["hash"]
-
                 if pc_changed and fl_changed:
                     plan[f] = Action.CONFLICT
                 elif pc_changed:

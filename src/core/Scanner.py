@@ -7,11 +7,11 @@ class Scanner:
     """
 
     @staticmethod
-    def scan_folder(path_to_folder: Path, ignore_files: list) -> set[Path]:
+    def scan_folder(path_to_folder: Path, ignore_folders: list) -> set[Path]:
         """
         Рекурсивное сканирование с учетом игнорируемых файлов
         :param path_to_folder: путь к папке для сканирования
-        :param ignore_files: игнорируемые файлы\папки
+        :param ignore_folders: игнорируемые файлы\папки
         :return: все файлы на папке
         """
         result = set()
@@ -23,7 +23,7 @@ class Scanner:
                 abs_path = Path(directory) / file
                 rel_parts = abs_path.parts[len(root_parts):]
 
-                if any(p in ignore_files for p in rel_parts):
+                if any(p in ignore_folders for p in rel_parts):
                     continue
 
                 rel_path = Path(*rel_parts)
