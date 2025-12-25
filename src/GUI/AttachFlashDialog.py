@@ -41,7 +41,7 @@ class AttachFlashDialog(QDialog):
 
         layout.addWidget(QLabel("Игнорируемые папки"))
         self.ignore_list = QListWidget()
-        self.ignore_list.addItem(".sync")  # обязательная
+        self.ignore_list.addItem(".sync")
         layout.addWidget(self.ignore_list)
 
         btn_add = QPushButton("Добавить папку…")
